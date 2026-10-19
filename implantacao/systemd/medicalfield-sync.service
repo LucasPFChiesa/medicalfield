@@ -1,0 +1,19 @@
+[Unit]
+Description=MedicalField - sincronização e logs offline (Go)
+After=network.target postgresql.service medicalfield-cadastros.service medicalfield-atendimentos.service
+Wants=postgresql.service
+
+[Service]
+User=univates
+Group=univates
+WorkingDirectory=/opt/medicalfield/servicos/sync-go
+EnvironmentFile=/etc/medicalfield/medicalfield.env
+ExecStart=/opt/medicalfield/servicos/sync-go/sync-go
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=true
+ProtectSystem=full
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
