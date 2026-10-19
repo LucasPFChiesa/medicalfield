@@ -1,16 +1,17 @@
 {
   "name": "medicalfield-cadastros",
-  "version": "0.1.0",
-  "private": true,
+  "version": "1.0.0",
+  "description": "MedicalField - serviço de cadastros e autenticação",
   "type": "module",
+  "main": "src/servidor.js",
   "scripts": {
-    "dev": "node --watch src/servidor.js",
-    "start": "node src/servidor.js"
+    "start": "node src/servidor.js",
+    "test": "node --test test/*.test.js"
   },
   "dependencies": {
-    "dotenv": "^16.4.7",
+    "bcryptjs": "^3.0.2",
     "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
     "pg": "^8.16.0"
   }
 }
-

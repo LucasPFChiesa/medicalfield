@@ -1,9 +1,6 @@
-import "dotenv/config";
-import { app } from "./app.js";
+import { app } from './app.js';
 
-const porta = Number(process.env.PORTA_CADASTROS ?? 3001);
-
-app.listen(porta, () => {
-  console.log(`Servico de cadastros na porta ${porta}`);
+const porta = Number(process.env.PORTA_CADASTROS) || 3001;
+app.listen(porta, '127.0.0.1', () => {
+  console.log(`Serviço de cadastros ouvindo em 127.0.0.1:${porta}`);
 });
-

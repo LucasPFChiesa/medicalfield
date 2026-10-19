@@ -1,0 +1,225 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "MedicalField - Cadastros (Node.js)",
+    "version": "1.0.0",
+    "description": "Autenticação, pessoas (pacientes), prontuários, medicamentos, profissionais e consulta da auditoria. Todas as rotas, exceto o login, exigem o cabeçalho Authorization: Bearer <token>."
+  },
+  "servers": [{ "url": "/" }],
+  "security": [{ "bearer": [] }],
+  "tags": [
+    { "name": "Autenticação" }, { "name": "Pessoas" }, { "name": "Prontuários" },
+    { "name": "Medicamentos" }, { "name": "Profissionais" }, { "name": "Auditoria" }
+  ],
+  "paths": {
+    "/api/auth/login": {
+      "post": {
+        "tags": ["Autenticação"], "summary": "Autentica o profissional e retorna um token", "security": [],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Login" } } } },
+        "responses": {
+          "200": { "description": "Token emitido", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/RespostaLogin" } } } },
+          "400": { "$ref": "#/components/responses/Invalido" },
+          "401": { "description": "Registro ou senha incorretos" }
+        }
+      }
+    },
+    "/api/auth/eu": {
+      "get": { "tags": ["Autenticação"], "summary": "Dados do token atual", "responses": { "200": { "description": "Conteúdo do token" }, "401": { "$ref": "#/components/responses/NaoAutenticado" } } }
+    },
+    "/api/pessoa": {
+      "get": {
+        "tags": ["Pessoas"], "summary": "Lista pessoas (pacientes) não excluídas",
+        "parameters": [{ "$ref": "#/components/parameters/Busca" }],
+        "responses": { "200": { "description": "Lista", "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Pessoa" } } } } } }
+      },
+      "post": {
+        "tags": ["Pessoas"], "summary": "Cadastra nova pessoa",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PessoaEntrada" } } } },
+        "responses": { "201": { "description": "Criada" }, "400": { "$ref": "#/components/responses/Invalido" }, "409": { "description": "Id ou CPF já cadastrado" } }
+      }
+    },
+    "/api/pessoa/{id}": {
+      "parameters": [{ "$ref": "#/components/parameters/Id" }],
+      "get": { "tags": ["Pessoas"], "summary": "Obtém uma pessoa", "responses": { "200": { "description": "Pessoa" }, "404": { "description": "Não encontrada" } } },
+      "put": {
+        "tags": ["Pessoas"], "summary": "Cria ou atualiza a pessoa (com controle de versão opcional)",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PessoaEntrada" } } } },
+        "responses": { "200": { "description": "Atualizada" }, "201": { "description": "Criada" }, "409": { "$ref": "#/components/responses/Conflito" } }
+      },
+      "delete": { "tags": ["Pessoas"], "summary": "Exclusão lógica (somente admin)", "responses": { "200": { "description": "Excluída" }, "403": { "$ref": "#/components/responses/SemPermissao" } } }
+    },
+    "/api/prontuario": {
+      "get": {
+        "tags": ["Prontuários"], "summary": "Obtém todos os prontuários de todas as pessoas",
+        "parameters": [{ "$ref": "#/components/parameters/Busca" }],
+        "responses": { "200": { "description": "Lista", "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Prontuario" } } } } } }
+      },
+      "post": {
+        "tags": ["Prontuários"], "summary": "Cadastra um prontuário",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ProntuarioEntrada" } } } },
+        "responses": { "201": { "description": "Criado" }, "400": { "$ref": "#/components/responses/Invalido" }, "409": { "description": "Paciente já possui prontuário" } }
+      }
+    },
+    "/api/prontuario/{id}": {
+      "parameters": [{ "name": "id", "in": "path", "required": true, "description": "Id do prontuário ou id da pessoa", "schema": { "type": "string", "format": "uuid" } }],
+      "get": { "tags": ["Prontuários"], "summary": "Obtém o prontuário de uma pessoa", "responses": { "200": { "description": "Prontuário" }, "404": { "description": "Não encontrado" } } },
+      "put": {
+        "tags": ["Prontuários"], "summary": "Cria ou atualiza o prontuário (id do prontuário)",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ProntuarioEntrada" } } } },
+        "responses": { "200": { "description": "Atualizado" }, "201": { "description": "Criado" }, "409": { "$ref": "#/components/responses/Conflito" } }
+      },
+      "delete": { "tags": ["Prontuários"], "summary": "Exclusão lógica (somente admin)", "responses": { "200": { "description": "Excluído" }, "403": { "$ref": "#/components/responses/SemPermissao" } } }
+    },
+    "/api/medicamento": {
+      "get": {
+        "tags": ["Medicamentos"], "summary": "Obtém todos os medicamentos",
+        "parameters": [{ "$ref": "#/components/parameters/Busca" }],
+        "responses": { "200": { "description": "Lista", "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Medicamento" } } } } } }
+      },
+      "post": {
+        "tags": ["Medicamentos"], "summary": "Cadastra medicamento (somente admin)",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/MedicamentoEntrada" } } } },
+        "responses": { "201": { "description": "Criado" }, "403": { "$ref": "#/components/responses/SemPermissao" } }
+      }
+    },
+    "/api/medicamento/{id}": {
+      "parameters": [{ "$ref": "#/components/parameters/Id" }],
+      "get": { "tags": ["Medicamentos"], "summary": "Obtém um medicamento", "responses": { "200": { "description": "Medicamento" }, "404": { "description": "Não encontrado" } } },
+      "put": {
+        "tags": ["Medicamentos"], "summary": "Atualiza medicamento (somente admin)",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/MedicamentoEntrada" } } } },
+        "responses": { "200": { "description": "Atualizado" }, "409": { "$ref": "#/components/responses/Conflito" } }
+      },
+      "delete": { "tags": ["Medicamentos"], "summary": "Exclusão lógica (somente admin)", "responses": { "200": { "description": "Excluído" } } }
+    },
+    "/api/profissional": {
+      "get": { "tags": ["Profissionais"], "summary": "Lista profissionais (somente admin)", "responses": { "200": { "description": "Lista" }, "403": { "$ref": "#/components/responses/SemPermissao" } } },
+      "post": {
+        "tags": ["Profissionais"], "summary": "Cadastra profissional (somente admin)",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ProfissionalEntrada" } } } },
+        "responses": { "201": { "description": "Criado" }, "400": { "$ref": "#/components/responses/Invalido" }, "409": { "description": "Registro já cadastrado" } }
+      }
+    },
+    "/api/profissional/{id}": {
+      "parameters": [{ "$ref": "#/components/parameters/Id" }],
+      "get": { "tags": ["Profissionais"], "summary": "Obtém profissional", "responses": { "200": { "description": "Profissional" } } },
+      "put": {
+        "tags": ["Profissionais"], "summary": "Atualiza profissional (senha opcional)",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ProfissionalEntrada" } } } },
+        "responses": { "200": { "description": "Atualizado" } }
+      },
+      "delete": { "tags": ["Profissionais"], "summary": "Desativa profissional", "responses": { "200": { "description": "Desativado" } } }
+    },
+    "/api/auditoria": {
+      "get": {
+        "tags": ["Auditoria"], "summary": "Últimos registros de acesso de todos os serviços (somente admin)",
+        "parameters": [
+          { "name": "servico", "in": "query", "schema": { "type": "string", "enum": ["cadastros", "atendimentos", "sync", "app-socorrista"] } },
+          { "name": "limite", "in": "query", "schema": { "type": "integer", "default": 100, "maximum": 500 } }
+        ],
+        "responses": { "200": { "description": "Lista de logs" } }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": { "bearer": { "type": "http", "scheme": "bearer", "bearerFormat": "JWT" } },
+    "parameters": {
+      "Id": { "name": "id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } },
+      "Busca": { "name": "busca", "in": "query", "description": "Filtro por texto", "schema": { "type": "string" } }
+    },
+    "responses": {
+      "Invalido": { "description": "Dados inválidos", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Erro" } } } },
+      "NaoAutenticado": { "description": "Token ausente, inválido ou expirado" },
+      "SemPermissao": { "description": "Perfil sem permissão" },
+      "Conflito": { "description": "versao_base diferente da versão atual; o registro atual é devolvido em 'atual'" }
+    },
+    "schemas": {
+      "Erro": { "type": "object", "properties": { "erro": { "type": "string" }, "detalhes": { "type": "array", "items": { "type": "string" } } } },
+      "Login": {
+        "type": "object", "required": ["tipo_registro", "numero_registro", "senha"],
+        "properties": {
+          "tipo_registro": { "type": "string", "enum": ["CRM", "COREN", "SOCORRISTA"], "example": "CRM" },
+          "numero_registro": { "type": "string", "example": "admin" },
+          "senha": { "type": "string" }
+        }
+      },
+      "RespostaLogin": { "type": "object", "properties": { "token": { "type": "string" }, "profissional": { "$ref": "#/components/schemas/Profissional" } } },
+      "Controle": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "versao": { "type": "integer" },
+          "seq_alteracao": { "type": "integer" },
+          "criado_em": { "type": "string", "format": "date-time" },
+          "atualizado_em": { "type": "string", "format": "date-time" },
+          "excluido_em": { "type": "string", "format": "date-time", "nullable": true }
+        }
+      },
+      "PessoaEntrada": {
+        "type": "object", "required": ["nome"],
+        "properties": {
+          "id": { "type": "string", "format": "uuid", "description": "Opcional no POST; gerado pelo cliente para permitir reenvio sem duplicar" },
+          "nome": { "type": "string", "example": "Maria da Silva" },
+          "cpf": { "type": "string", "example": "12345678901" },
+          "data_nascimento": { "type": "string", "format": "date" },
+          "sexo": { "type": "string", "enum": ["M", "F", "O"] },
+          "telefone": { "type": "string" },
+          "email": { "type": "string" },
+          "contato_emergencia_nome": { "type": "string" },
+          "contato_emergencia_telefone": { "type": "string" },
+          "versao_base": { "type": "integer", "description": "Versão lida pelo cliente (PUT)" },
+          "alterado_no_cliente_em": { "type": "string", "format": "date-time" }
+        }
+      },
+      "Pessoa": { "allOf": [{ "$ref": "#/components/schemas/PessoaEntrada" }, { "$ref": "#/components/schemas/Controle" }] },
+      "ProntuarioEntrada": {
+        "type": "object", "required": ["paciente_id"],
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "paciente_id": { "type": "string", "format": "uuid" },
+          "tipo_sanguineo": { "type": "string", "enum": ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"] },
+          "alergias": { "type": "string" },
+          "comorbidades": { "type": "string" },
+          "uso_continuo": { "type": "string" },
+          "observacoes": { "type": "string" },
+          "versao_base": { "type": "integer" },
+          "alterado_no_cliente_em": { "type": "string", "format": "date-time" }
+        }
+      },
+      "Prontuario": { "allOf": [{ "$ref": "#/components/schemas/ProntuarioEntrada" }, { "$ref": "#/components/schemas/Controle" }, { "type": "object", "properties": { "paciente_nome": { "type": "string" } } }] },
+      "MedicamentoEntrada": {
+        "type": "object", "required": ["nome"],
+        "properties": {
+          "nome": { "type": "string", "example": "Dipirona sódica" },
+          "principio_ativo": { "type": "string" },
+          "apresentacao": { "type": "string" },
+          "concentracao": { "type": "string" },
+          "via_padrao": { "type": "string" },
+          "alerta": { "type": "string" },
+          "versao_base": { "type": "integer" }
+        }
+      },
+      "Medicamento": { "allOf": [{ "$ref": "#/components/schemas/MedicamentoEntrada" }, { "$ref": "#/components/schemas/Controle" }] },
+      "ProfissionalEntrada": {
+        "type": "object", "required": ["nome", "tipo_registro", "numero_registro", "perfil"],
+        "properties": {
+          "nome": { "type": "string" },
+          "tipo_registro": { "type": "string", "enum": ["CRM", "COREN", "SOCORRISTA"] },
+          "numero_registro": { "type": "string" },
+          "perfil": { "type": "string", "enum": ["admin", "medico", "enfermeiro", "socorrista"] },
+          "email": { "type": "string" },
+          "senha": { "type": "string", "description": "Obrigatória no cadastro; opcional na edição" },
+          "ativo": { "type": "boolean" }
+        }
+      },
+      "Profissional": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" }, "nome": { "type": "string" },
+          "tipo_registro": { "type": "string" }, "numero_registro": { "type": "string" },
+          "perfil": { "type": "string" }, "email": { "type": "string" }, "ativo": { "type": "boolean" }
+        }
+      }
+    }
+  }
+}
