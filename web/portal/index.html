@@ -3,14 +3,55 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Portal | MedicalField</title>
+  <title>MedicalField – Portal</title>
+  <link rel="icon" href="/socorrista/icone.svg">
   <link rel="stylesheet" href="/comum/estilo.css">
 </head>
 <body>
-  <main class="conteudo">
-    <h1>Portal administrativo</h1>
-    <p>Módulo em desenvolvimento.</p>
-  </main>
+  <section id="tela-login" class="caixa-login painel oculto">
+    <h1>MedicalField</h1>
+    <p>Portal administrativo</p>
+    <div id="msg-login" class="mensagem"></div>
+    <form id="form-login" class="grade">
+      <div>
+        <label for="tipo_registro">Tipo de registro</label>
+        <select id="tipo_registro" name="tipo_registro">
+          <option value="CRM">CRM</option>
+          <option value="COREN">COREN</option>
+          <option value="SOCORRISTA">ID de socorrista</option>
+        </select>
+      </div>
+      <div><label for="numero_registro">Número</label><input id="numero_registro" name="numero_registro" required autocomplete="username"></div>
+      <div><label for="senha">Senha</label><input id="senha" name="senha" type="password" required autocomplete="current-password"></div>
+      <button type="submit">Entrar</button>
+    </form>
+    <p><a href="/socorrista/">Ir para o app do socorrista</a></p>
+  </section>
+
+  <div id="tela-portal" class="oculto">
+    <header class="topo">
+      <div class="marca">MedicalField <span>· Portal administrativo</span></div>
+      <span class="usuario" id="usuario"></span>
+      <button class="pequeno" id="sair">Sair</button>
+    </header>
+    <div class="layout">
+      <nav class="menu" id="menu">
+        <a href="#pacientes">Pacientes</a>
+        <a href="#prontuarios">Prontuários</a>
+        <a href="#atendimentos">Atendimentos</a>
+        <a href="#medicamentos">Medicamentos</a>
+        <a href="#profissionais" data-admin>Profissionais</a>
+        <a href="#sincronizacoes">Sincronizações</a>
+        <a href="#auditoria" data-admin>Auditoria</a>
+        <a href="/docs/" target="_blank">Documentação da API</a>
+      </nav>
+      <main class="conteudo">
+        <div id="msg" class="mensagem"></div>
+        <div id="pagina"></div>
+      </main>
+    </div>
+  </div>
+
+  <script type="module" src="portal.js"></script>
 </body>
 </html>
-
