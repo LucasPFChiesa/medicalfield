@@ -1,0 +1,1265 @@
+{
+  "info": {
+    "name": "MedicalField",
+    "description": "Rotas dos três microsserviços do MedicalField. Execute primeiro 'Login (admin)'. Usuário admin, senha admin (variável senha).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://medicalfield.duckdns.org/api"
+    },
+    {
+      "key": "senha",
+      "value": "admin"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "token_socorrista",
+      "value": ""
+    },
+    {
+      "key": "pessoa_id",
+      "value": ""
+    },
+    {
+      "key": "prontuario_id",
+      "value": ""
+    },
+    {
+      "key": "medicamento_id",
+      "value": ""
+    },
+    {
+      "key": "atendimento_id",
+      "value": ""
+    },
+    {
+      "key": "op_pessoa",
+      "value": ""
+    },
+    {
+      "key": "op_atendimento",
+      "value": ""
+    },
+    {
+      "key": "email_destino",
+      "value": "lpfctest@gmail.com"
+    },
+    {
+      "key": "offline_pessoa",
+      "value": ""
+    },
+    {
+      "key": "offline_atendimento",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Autenticação (Node)",
+      "item": [
+        {
+          "name": "Login (admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo_registro\": \"CRM\",\n  \"numero_registro\": \"admin\",\n  \"senha\": \"{{senha}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "pm.collectionVariables.set('token', pm.response.json().token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login (socorrista)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo_registro\": \"SOCORRISTA\",\n  \"numero_registro\": \"SOC-0042\",\n  \"senha\": \"{{senha}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "pm.collectionVariables.set('token_socorrista', pm.response.json().token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login com senha errada (401)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo_registro\": \"CRM\",\n  \"numero_registro\": \"admin\",\n  \"senha\": \"errada\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 401', () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Dados do token",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/auth/eu",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "eu"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Sem token (401)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/pessoa",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "pessoa"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 401', () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "2. Pessoas (Node)",
+      "item": [
+        {
+          "name": "Listar pessoas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/pessoa",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "pessoa"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Buscar pessoa",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/pessoa?busca=Ana",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "pessoa"
+              ],
+              "query": [
+                {
+                  "key": "busca",
+                  "value": "Ana"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cadastrar pessoa",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/pessoa",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "pessoa"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Paciente Postman\",\n  \"data_nascimento\": \"1990-05-20\",\n  \"sexo\": \"F\",\n  \"telefone\": \"(51) 99999-0000\",\n  \"contato_emergencia_nome\": \"Contato Postman\",\n  \"contato_emergencia_telefone\": \"(51) 98888-0000\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 201', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('pessoa_id', pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Obter pessoa",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/pessoa/{{pessoa_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "pessoa",
+                "{{pessoa_id}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Atualizar pessoa (versão 1)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/pessoa/{{pessoa_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "pessoa",
+                "{{pessoa_id}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Paciente Postman Editado\",\n  \"sexo\": \"F\",\n  \"versao_base\": 1\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Atualizar com versão antiga (409)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/pessoa/{{pessoa_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "pessoa",
+                "{{pessoa_id}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Edição atrasada\",\n  \"versao_base\": 1\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 409', () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Dados inválidos (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/pessoa",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "pessoa"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cpf\": \"123\",\n  \"sexo\": \"X\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 400', () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "3. Prontuários (Node)",
+      "item": [
+        {
+          "name": "Listar prontuários",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/prontuario",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "prontuario"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cadastrar prontuário",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/prontuario",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "prontuario"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"paciente_id\": \"{{pessoa_id}}\",\n  \"tipo_sanguineo\": \"O+\",\n  \"alergias\": \"Dipirona\",\n  \"comorbidades\": \"Asma\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 201', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('prontuario_id', pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Obter prontuário de uma pessoa",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/prontuario/{{pessoa_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "prontuario",
+                "{{pessoa_id}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Atualizar prontuário",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/prontuario/{{prontuario_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "prontuario",
+                "{{prontuario_id}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"paciente_id\": \"{{pessoa_id}}\",\n  \"tipo_sanguineo\": \"O+\",\n  \"alergias\": \"Dipirona, látex\",\n  \"versao_base\": 1\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "4. Medicamentos (Node)",
+      "item": [
+        {
+          "name": "Listar medicamentos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/medicamento",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "medicamento"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "pm.collectionVariables.set('medicamento_id', pm.response.json()[0].id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cadastrar medicamento (admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/medicamento",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "medicamento"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Cetoprofeno\",\n  \"principio_ativo\": \"Cetoprofeno\",\n  \"apresentacao\": \"Frasco-ampola\",\n  \"concentracao\": \"100 mg\",\n  \"via_padrao\": \"IV\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 201', () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "5. Profissionais e auditoria (Node, admin)",
+      "item": [
+        {
+          "name": "Listar profissionais",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/profissional",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "profissional"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Auditoria de acessos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/auditoria?limite=50",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auditoria"
+              ],
+              "query": [
+                {
+                  "key": "limite",
+                  "value": "50"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Auditoria só do serviço Go",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/auditoria?servico=sync&limite=20",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auditoria"
+              ],
+              "query": [
+                {
+                  "key": "servico",
+                  "value": "sync"
+                },
+                {
+                  "key": "limite",
+                  "value": "20"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "6. Atendimentos, PDF e e-mail (Python)",
+      "item": [
+        {
+          "name": "Listar atendimentos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/atendimento",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "atendimento"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cadastrar atendimento",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/atendimento",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "atendimento"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"paciente_id\": \"{{pessoa_id}}\",\n  \"data_hora\": \"2026-10-13T14:30:00-03:00\",\n  \"tipo_ocorrencia\": \"trauma\",\n  \"local\": \"Av. Senador Alberto Pasqualini, 2000 - Lajeado\",\n  \"descricao\": \"Queda de altura de 2 metros, dor em membro inferior direito.\",\n  \"pa_sistolica\": 130,\n  \"pa_diastolica\": 85,\n  \"fc\": 98,\n  \"fr\": 20,\n  \"spo2\": 97,\n  \"temperatura\": 36.5,\n  \"glicemia\": 110,\n  \"glasgow_ocular\": 4,\n  \"glasgow_verbal\": 5,\n  \"glasgow_motora\": 6,\n  \"manchester\": \"amarelo\",\n  \"start\": \"amarelo\",\n  \"medicamentos\": [\n    {\n      \"medicamento_id\": \"{{medicamento_id}}\",\n      \"dose\": 1,\n      \"unidade\": \"g\",\n      \"via\": \"IV\",\n      \"horario\": \"2026-10-13T14:40:00-03:00\"\n    }\n  ]\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 201', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('atendimento_id', pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Atendimentos de uma pessoa",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/atendimento/{{pessoa_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "atendimento",
+                "{{pessoa_id}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Detalhe do atendimento",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/atendimento/detalhe/{{atendimento_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "atendimento",
+                "detalhe",
+                "{{atendimento_id}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Atualizar atendimento",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/atendimento/{{atendimento_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "atendimento",
+                "{{atendimento_id}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"paciente_id\": \"{{pessoa_id}}\",\n  \"data_hora\": \"2026-10-13T14:30:00-03:00\",\n  \"tipo_ocorrencia\": \"trauma\",\n  \"local\": \"Av. Senador Alberto Pasqualini, 2000 - Lajeado\",\n  \"descricao\": \"Descrição revisada pelo Postman.\",\n  \"pa_sistolica\": 130,\n  \"pa_diastolica\": 85,\n  \"fc\": 98,\n  \"fr\": 20,\n  \"spo2\": 97,\n  \"temperatura\": 36.5,\n  \"glicemia\": 110,\n  \"glasgow_ocular\": 4,\n  \"glasgow_verbal\": 5,\n  \"glasgow_motora\": 6,\n  \"manchester\": \"amarelo\",\n  \"start\": \"amarelo\",\n  \"medicamentos\": [\n    {\n      \"medicamento_id\": \"{{medicamento_id}}\",\n      \"dose\": 1,\n      \"unidade\": \"g\",\n      \"via\": \"IV\",\n      \"horario\": \"2026-10-13T14:40:00-03:00\"\n    }\n  ],\n  \"versao_base\": 1\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Glasgow incompleta (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/atendimento",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "atendimento"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"paciente_id\": \"{{pessoa_id}}\",\n  \"data_hora\": \"2026-10-13T14:30:00-03:00\",\n  \"tipo_ocorrencia\": \"trauma\",\n  \"local\": \"Av. Senador Alberto Pasqualini, 2000 - Lajeado\",\n  \"descricao\": \"Queda de altura de 2 metros, dor em membro inferior direito.\",\n  \"pa_sistolica\": 130,\n  \"pa_diastolica\": 85,\n  \"fc\": 98,\n  \"fr\": 20,\n  \"spo2\": 97,\n  \"temperatura\": 36.5,\n  \"glicemia\": 110,\n  \"glasgow_ocular\": 4,\n  \"glasgow_verbal\": null,\n  \"glasgow_motora\": 6,\n  \"manchester\": \"amarelo\",\n  \"start\": \"amarelo\",\n  \"medicamentos\": [\n    {\n      \"medicamento_id\": \"{{medicamento_id}}\",\n      \"dose\": 1,\n      \"unidade\": \"g\",\n      \"via\": \"IV\",\n      \"horario\": \"2026-10-13T14:40:00-03:00\"\n    }\n  ]\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 400', () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Ficha em PDF",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/atendimento/{{atendimento_id}}/pdf",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "atendimento",
+                "{{atendimento_id}}",
+                "pdf"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('é PDF', () => pm.expect(pm.response.headers.get('Content-Type')).to.eql('application/pdf'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Enviar ficha por e-mail",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/atendimento/{{atendimento_id}}/email",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "atendimento",
+                "{{atendimento_id}}",
+                "email"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"destinatario\": \"{{email_destino}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "7. Sincronização e logs (Go)",
+      "item": [
+        {
+          "name": "Pull completo",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/sync/pull?desde=0",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "sync",
+                "pull"
+              ],
+              "query": [
+                {
+                  "key": "desde",
+                  "value": "0"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Push de ocorrência offline",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/sync/push",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "sync",
+                "push"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dispositivo_id\": \"postman\",\n  \"operacoes\": [\n    {\n      \"op_id\": \"{{op_pessoa}}\",\n      \"entidade\": \"paciente\",\n      \"acao\": \"criar\",\n      \"entidade_id\": \"{{offline_pessoa}}\",\n      \"versao_base\": 0,\n      \"dados\": {\n        \"id\": \"{{offline_pessoa}}\",\n        \"nome\": \"Vítima via Postman\",\n        \"sexo\": \"M\",\n        \"alterado_no_cliente_em\": \"2026-10-13T15:00:00Z\"\n      }\n    },\n    {\n      \"op_id\": \"{{op_atendimento}}\",\n      \"entidade\": \"atendimento\",\n      \"acao\": \"criar\",\n      \"entidade_id\": \"{{offline_atendimento}}\",\n      \"versao_base\": 0,\n      \"dados\": {\n        \"id\": \"{{offline_atendimento}}\",\n        \"paciente_id\": \"{{offline_pessoa}}\",\n        \"data_hora\": \"2026-10-13T15:00:00Z\",\n        \"tipo_ocorrencia\": \"queda\",\n        \"descricao\": \"Registrado sem conexão (Postman).\",\n        \"manchester\": \"verde\"\n      }\n    }\n  ]\n}"
+            },
+            "description": "O script de pré-requisição gera novos ids. Rode 'Reenviar o mesmo push' em seguida para ver a idempotência."
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "for (const v of ['op_pessoa','op_atendimento','offline_pessoa','offline_atendimento']) pm.collectionVariables.set(v, pm.variables.replaceIn('{{$guid}}'));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('aplicadas', () => pm.expect(pm.response.json().resultados.map(r => r.status)).to.eql(['aplicada','aplicada']));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Reenviar o mesmo push (duplicada)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/sync/push",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "sync",
+                "push"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dispositivo_id\": \"postman\",\n  \"operacoes\": [\n    {\n      \"op_id\": \"{{op_pessoa}}\",\n      \"entidade\": \"paciente\",\n      \"acao\": \"criar\",\n      \"entidade_id\": \"{{offline_pessoa}}\",\n      \"versao_base\": 0,\n      \"dados\": {\n        \"id\": \"{{offline_pessoa}}\",\n        \"nome\": \"Vítima via Postman\",\n        \"sexo\": \"M\",\n        \"alterado_no_cliente_em\": \"2026-10-13T15:00:00Z\"\n      }\n    },\n    {\n      \"op_id\": \"{{op_atendimento}}\",\n      \"entidade\": \"atendimento\",\n      \"acao\": \"criar\",\n      \"entidade_id\": \"{{offline_atendimento}}\",\n      \"versao_base\": 0,\n      \"dados\": {\n        \"id\": \"{{offline_atendimento}}\",\n        \"paciente_id\": \"{{offline_pessoa}}\",\n        \"data_hora\": \"2026-10-13T15:00:00Z\",\n        \"tipo_ocorrencia\": \"queda\",\n        \"descricao\": \"Registrado sem conexão (Postman).\",\n        \"manchester\": \"verde\"\n      }\n    }\n  ]\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('duplicadas', () => pm.expect(pm.response.json().resultados.map(r => r.status)).to.eql(['duplicada','duplicada']));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Rastro das operações",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/sync/operacoes?limite=20",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "sync",
+                "operacoes"
+              ],
+              "query": [
+                {
+                  "key": "limite",
+                  "value": "20"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Enviar logs offline",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/log",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "log"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dispositivo_id\": \"postman\",\n  \"logs\": [\n    {\n      \"data_hora\": \"2026-10-13T15:00:00Z\",\n      \"metodo\": \"LOCAL\",\n      \"rota\": \"criar paciente (offline)\",\n      \"status\": 0,\n      \"duracao_ms\": 2.5\n    }\n  ]\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 201', () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
