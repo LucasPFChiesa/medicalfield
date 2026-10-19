@@ -3,10 +3,6 @@ node_modules/
 .venv/
 __pycache__/
 *.pyc
-*.log
-bin/
-dist/
-coverage/
+servicos/sync-go/sync-go
 test-results/
 playwright-report/
-
