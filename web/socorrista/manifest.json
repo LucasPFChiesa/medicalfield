@@ -1,0 +1,14 @@
+{
+  "name": "MedicalField – Socorrista",
+  "short_name": "MedicalField",
+  "description": "Registro de atendimentos pré-hospitalares com funcionamento offline",
+  "start_url": "/socorrista/",
+  "scope": "/socorrista/",
+  "display": "standalone",
+  "background_color": "#f3f6f8",
+  "theme_color": "#1d6a85",
+  "lang": "pt-BR",
+  "icons": [
+    { "src": "/socorrista/icone.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
