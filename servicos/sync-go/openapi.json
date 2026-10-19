@@ -1,0 +1,131 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "MedicalField - Sincronização (Go)",
+    "version": "1.0.0",
+    "description": "Sincronização bidirecional do app do socorrista. O push recebe a fila de operações feitas offline, garante idempotência pelo op_id, resolve conflitos de versão e repassa cada gravação ao serviço dono da entidade. O pull devolve tudo que mudou desde um cursor. Todas as rotas exigem Authorization: Bearer <token>."
+  },
+  "servers": [{ "url": "/" }],
+  "security": [{ "bearer": [] }],
+  "paths": {
+    "/api/sync/push": {
+      "post": {
+        "tags": ["Sincronização"],
+        "summary": "Envia operações pendentes do dispositivo (cliente → servidor)",
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PedidoPush" } } }
+        },
+        "responses": {
+          "200": { "description": "Resultado de cada operação", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/RespostaPush" } } } },
+          "400": { "description": "Pedido inválido" },
+          "401": { "description": "Token ausente ou inválido" }
+        }
+      }
+    },
+    "/api/sync/pull": {
+      "get": {
+        "tags": ["Sincronização"],
+        "summary": "Baixa os dados alterados depois do cursor (servidor → cliente)",
+        "parameters": [{ "name": "desde", "in": "query", "description": "Último cursor recebido (0 na primeira vez)", "schema": { "type": "integer", "default": 0 } }],
+        "responses": {
+          "200": { "description": "Registros alterados e novo cursor", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/RespostaPull" } } } }
+        }
+      }
+    },
+    "/api/sync/operacoes": {
+      "get": {
+        "tags": ["Sincronização"],
+        "summary": "Rastro das operações recebidas (para o portal)",
+        "parameters": [{ "name": "limite", "in": "query", "schema": { "type": "integer", "default": 100, "maximum": 500 } }],
+        "responses": { "200": { "description": "Últimas operações" } }
+      }
+    },
+    "/api/log": {
+      "post": {
+        "tags": ["Auditoria"],
+        "summary": "Envia os logs locais gravados pelo app enquanto estava offline",
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PedidoLog" } } }
+        },
+        "responses": { "201": { "description": "Logs gravados" }, "400": { "description": "Pedido inválido" } }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": { "bearer": { "type": "http", "scheme": "bearer", "bearerFormat": "JWT" } },
+    "schemas": {
+      "Operacao": {
+        "type": "object",
+        "required": ["op_id", "entidade", "acao", "entidade_id"],
+        "properties": {
+          "op_id": { "type": "string", "format": "uuid", "description": "Identificador único da operação (idempotência)" },
+          "entidade": { "type": "string", "enum": ["paciente", "prontuario", "atendimento"] },
+          "acao": { "type": "string", "enum": ["criar", "atualizar", "excluir"] },
+          "entidade_id": { "type": "string", "format": "uuid" },
+          "versao_base": { "type": "integer", "description": "Versão do registro quando foi editado no dispositivo (0 para registro novo)" },
+          "dados": { "type": "object", "description": "Registro completo, no mesmo formato das APIs de cadastros/atendimentos" }
+        }
+      },
+      "PedidoPush": {
+        "type": "object",
+        "required": ["dispositivo_id", "operacoes"],
+        "properties": {
+          "dispositivo_id": { "type": "string" },
+          "operacoes": { "type": "array", "maxItems": 200, "items": { "$ref": "#/components/schemas/Operacao" } }
+        }
+      },
+      "RespostaPush": {
+        "type": "object",
+        "properties": {
+          "resultados": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "op_id": { "type": "string" },
+                "status": { "type": "string", "enum": ["aplicada", "duplicada", "conflito", "erro"] },
+                "mensagem": { "type": "string" },
+                "retentar": { "type": "boolean", "description": "true quando vale reenviar depois (falha temporária)" },
+                "registro": { "type": "object", "description": "Versão do registro que ficou no servidor" }
+              }
+            }
+          }
+        }
+      },
+      "RespostaPull": {
+        "type": "object",
+        "properties": {
+          "cursor": { "type": "integer" },
+          "pacientes": { "type": "array", "items": { "type": "object" } },
+          "prontuarios": { "type": "array", "items": { "type": "object" } },
+          "medicamentos": { "type": "array", "items": { "type": "object" } },
+          "atendimentos": { "type": "array", "items": { "type": "object" } },
+          "profissionais": { "type": "array", "items": { "type": "object" } }
+        }
+      },
+      "PedidoLog": {
+        "type": "object",
+        "properties": {
+          "dispositivo_id": { "type": "string" },
+          "logs": {
+            "type": "array",
+            "maxItems": 500,
+            "items": {
+              "type": "object",
+              "required": ["data_hora", "metodo", "rota"],
+              "properties": {
+                "data_hora": { "type": "string", "format": "date-time" },
+                "metodo": { "type": "string", "example": "LOCAL" },
+                "rota": { "type": "string", "example": "criar paciente" },
+                "status": { "type": "integer" },
+                "duracao_ms": { "type": "number" }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
