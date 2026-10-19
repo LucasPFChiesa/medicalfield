@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MedicalField – API</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.17.14/swagger-ui.css">
+  <style>body { margin: 0; background: #fff; }</style>
+</head>
+<body>
+  <div id="swagger"></div>
+  <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.17.14/swagger-ui-bundle.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.17.14/swagger-ui-standalone-preset.js"></script>
+  <script>
+    // Cada serviço publica a própria especificação OpenAPI.
+    SwaggerUIBundle({
+      dom_id: '#swagger',
+      urls: [
+        { name: 'Cadastros e autenticação (Node.js)', url: '/api/openapi/cadastros.json' },
+        { name: 'Atendimentos, PDF e e-mail (Python)', url: '/api/openapi/atendimentos.json' },
+        { name: 'Sincronização e logs (Go)', url: '/api/openapi/sync.json' },
+      ],
+      presets: [SwaggerUIBundle.presets.apis, SwaggerUIStandalonePreset],
+      layout: 'StandaloneLayout',
+      persistAuthorization: true,
+    });
+  </script>
+</body>
+</html>

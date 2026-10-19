@@ -4,18 +4,19 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>MedicalField</title>
+  <link rel="icon" href="/socorrista/icone.svg">
   <link rel="stylesheet" href="/comum/estilo.css">
 </head>
 <body>
-  <main class="conteudo">
-    <h1>MedicalField</h1>
-    <p>Sistema para apoio a atendimentos médicos de emergência.</p>
-
-    <nav class="acessos">
-      <a href="/socorrista/">Área do socorrista</a>
-      <a href="/portal/">Portal administrativo</a>
-    </nav>
+  <header class="topo"><div class="marca">MedicalField <span>· Prontuário Médico de Emergência</span></div></header>
+  <main class="conteudo" style="max-width: 760px; margin: 0 auto;">
+    <div class="painel">
+      <h2>Acesso</h2>
+      <p><a class="botao" href="/socorrista/">App do socorrista</a> Registro de atendimentos, funciona sem internet.</p>
+      <p><a class="botao" href="/portal/">Portal administrativo</a> Consulta e manutenção dos dados no servidor central.</p>
+      <p><a class="botao secundario" href="/docs/">Documentação da API</a> Swagger dos três microsserviços.</p>
+    </div>
+    <p class="vazio">Trabalho final de Arquiteturas de Software – Univates 2026/B. Dados fictícios.</p>
   </main>
 </body>
 </html>
-
