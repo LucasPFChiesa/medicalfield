@@ -1,5 +1,9 @@
-fastapi==0.115.8
-uvicorn==0.34.0
-psycopg[binary]==3.2.4
-python-dotenv==1.0.1
-
+fastapi==0.143.0
+uvicorn==0.54.0
+psycopg[binary]==3.3.6
+psycopg-pool==3.3.3
+PyJWT==2.15.1
+fpdf2==2.8.9
+# testes
+pytest==9.1.1
+httpx==0.28.1
