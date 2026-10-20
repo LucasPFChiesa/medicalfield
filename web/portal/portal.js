@@ -32,6 +32,7 @@ const PERFIS = { admin: 'Administrador', medico: 'Médico', enfermeiro: 'Enferme
 const CADASTROS = {
   pacientes: {
     titulo: 'Pacientes',
+    descricao: 'Cadastro, pesquisa, edição e exclusão das pessoas atendidas.',
     api: '/pessoa',
     colunas: [['nome', 'Nome'], ['cpf', 'CPF'], ['data_nascimento', 'Nascimento', data], ['sexo', 'Sexo', (v) => SEXOS[v] ?? '-'],
       ['telefone', 'Telefone'], ['contato_emergencia_nome', 'Contato de emergência']],
@@ -49,6 +50,7 @@ const CADASTROS = {
   },
   prontuarios: {
     titulo: 'Prontuários',
+    descricao: 'Tipo sanguíneo, alergias e histórico de saúde de cada paciente.',
     api: '/prontuario',
     colunas: [['paciente_nome', 'Paciente'], ['tipo_sanguineo', 'Tipo sanguíneo'], ['alergias', 'Alergias'],
       ['comorbidades', 'Comorbidades'], ['uso_continuo', 'Uso contínuo'], ['atualizado_em', 'Atualizado em', dataHora]],
@@ -64,6 +66,7 @@ const CADASTROS = {
   },
   medicamentos: {
     titulo: 'Medicamentos',
+    descricao: 'Catálogo central, enviado aos dispositivos na sincronização.',
     api: '/medicamento',
     colunas: [['nome', 'Nome'], ['principio_ativo', 'Princípio ativo'], ['apresentacao', 'Apresentação'],
       ['concentracao', 'Concentração'], ['via_padrao', 'Via'], ['alerta', 'Alerta'], ['criado_em', 'Cadastrado em', dataHora]],
@@ -79,6 +82,7 @@ const CADASTROS = {
   },
   profissionais: {
     titulo: 'Profissionais',
+    descricao: 'Médicos, enfermeiros e socorristas com acesso ao sistema.',
     api: '/profissional',
     semVersao: true,
     colunas: [['nome', 'Nome'], ['tipo_registro', 'Registro', (v, r) => `${v} ${r.numero_registro}`], ['perfil', 'Perfil', (v) => PERFIS[v]],
@@ -120,21 +124,25 @@ async function mostrarCadastro(chave) {
   const busca = new URLSearchParams(location.hash.split('?')[1]).get('busca') ?? '';
   const registros = await api(cfg.api + (busca ? `?busca=${encodeURIComponent(busca)}` : ''));
 
+  // A coluna Versão mostra quantas vezes o registro foi alterado (usada no controle de conflitos).
+  const colunas = cfg.semVersao ? cfg.colunas : [...cfg.colunas, ['versao', 'Versão']];
+
   pagina.innerHTML = `
-    <h2>${cfg.titulo}</h2>
-    <div class="barra-acoes">
-      ${cfg.semVersao ? '' : `<form id="form-busca"><input name="busca" placeholder="Buscar..." value="${esc(busca)}"></form>`}
+    ${cabecalho(cfg.titulo, cfg.descricao, `
       <button class="secundario" id="atualizar">Atualizar</button>
-      <span class="espaco"></span>
-      ${cfg.podeEditar() ? '<button id="novo">Novo</button>' : ''}
-    </div>
+      ${cfg.podeEditar() ? '<button id="novo">Novo</button>' : ''}`)}
+    ${cfg.semVersao ? '' : `
+      <form id="form-busca" class="pesquisa">
+        <input name="busca" placeholder="Pesquisar por nome${chave === 'pacientes' ? ' ou CPF' : ''}" value="${esc(busca)}">
+        <button type="submit" class="secundario">Pesquisar</button>
+      </form>`}
     <div id="area-form"></div>
     <div class="tabela-container">
       <table>
-        <thead><tr>${cfg.colunas.map(([, t]) => `<th>${t}</th>`).join('')}<th></th></tr></thead>
+        <thead><tr>${colunas.map(([, t]) => `<th>${t}</th>`).join('')}<th></th></tr></thead>
         <tbody>${registros.map((r) => `
           <tr>
-            ${cfg.colunas.map(([c, , f]) => `<td>${esc(f ? f(r[c], r) : (r[c] ?? '-'))}</td>`).join('')}
+            ${colunas.map(([c, , f]) => `<td>${esc(f ? f(r[c], r) : (r[c] ?? '-'))}</td>`).join('')}
             <td class="acoes">
               ${cfg.podeEditar() ? `<button class="secundario pequeno" data-editar="${r.id}">Editar</button>` : ''}
               ${ehAdmin() && (r.ativo !== false) ? `<button class="perigo pequeno" data-excluir="${r.id}">${cfg.semVersao ? 'Desativar' : 'Excluir'}</button>` : ''}
