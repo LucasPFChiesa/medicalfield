@@ -1,4 +1,6 @@
 // Chamada às APIs. O Nginx encaminha cada caminho /api/... ao serviço certo.
+// servidor: vazio quando a página vem da própria VM; o endereço da VM quando
+// a página roda em outra máquina (app do socorrista no notebook).
 export class ErroApi extends Error {
   constructor(status, corpo) {
     const detalhes = Array.isArray(corpo?.detalhes) ? `: ${corpo.detalhes.join('; ')}` : '';
@@ -8,10 +10,10 @@ export class ErroApi extends Error {
   }
 }
 
-export async function chamarApi(caminho, { metodo = 'GET', corpo, token, comoArquivo = false } = {}) {
+export async function chamarApi(caminho, { metodo = 'GET', corpo, token, comoArquivo = false, servidor = '' } = {}) {
   let resposta;
   try {
-    resposta = await fetch('/api' + caminho, {
+    resposta = await fetch(servidor + '/api' + caminho, {
       method: metodo,
       headers: {
         ...(corpo !== undefined ? { 'Content-Type': 'application/json' } : {}),

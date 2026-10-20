@@ -5,6 +5,7 @@
 import * as db from './db-local.js';
 import { chamarApi, ErroApi } from '../comum/api.js';
 import { estaOnline, informarFalhaDeRede } from './conectividade.js';
+import { SERVIDOR } from './config.js';
 
 // Campos calculados pelo servidor, que não fazem parte do que é enviado.
 const CAMPOS_DO_SERVIDOR = ['versao', 'seq_alteracao', 'criado_em', 'atualizado_em', 'excluido_em', 'criado_por', 'glasgow_total'];
@@ -91,7 +92,7 @@ async function chamarServidor(caminho, opcoes = {}) {
   }
   const sessao = await db.lerMeta('sessao');
   try {
-    return await chamarApi(caminho, { ...opcoes, token: sessao?.token });
+    return await chamarApi(caminho, { ...opcoes, token: sessao?.token, servidor: SERVIDOR });
   } catch (erro) {
     if (erro.status === 0) informarFalhaDeRede();
     throw erro;

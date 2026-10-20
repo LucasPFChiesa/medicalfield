@@ -4,6 +4,7 @@ import { sincronizar, contarPendentes, historico, descartar } from './outbox.js'
 import { entrar, sair, sessaoAtual, tokenValido } from './sessao.js';
 import * as db from './db-local.js';
 import { pacienteExemplo, atendimentoExemplo, preencherFormulario } from './exemplos.js';
+import { SERVIDOR } from './config.js';
 import { htmlFormAtendimento, ligarFormAtendimento, lerFormAtendimento } from '../comum/form-atendimento.js';
 import {
   esc, data, dataHora, triagem, opcoes, lerFormulario, mostrarMensagem, baixarBlob, cabecalho, cartoes,
@@ -532,6 +533,7 @@ document.getElementById('sair').onclick = async () => {
   mostrarTelas();
 };
 
+document.getElementById('link-portal').href = `${SERVIDOR}/portal/`;
 document.getElementById('botao-sincronizar').onclick = () => sincronizarComAviso();
 
 document.querySelectorAll('[data-simular]').forEach((b) => {
