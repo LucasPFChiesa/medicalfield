@@ -1,4 +1,4 @@
-// Roteiro oficial de 17 passos, executado no Chrome contra o sistema publicado.
+// Roteiro oficial de 17 passos, executado no Chrome: portal na VM e app do socorrista local.
 // O passo 9 insere o medicamento direto no PostgreSQL da VM via ssh + psql.
 import { test, expect } from '@playwright/test';
 import { execFileSync } from 'node:child_process';
@@ -7,6 +7,8 @@ import { readFileSync } from 'node:fs';
 const SENHA = process.env.SENHA_DEMO;
 const VM = process.env.VM_SSH ?? 'univates@177.44.248.50';
 const EMAIL = process.env.EMAIL_TESTE ?? 'lpfctest@gmail.com';
+// O app do socorrista roda no notebook; o portal e as APIs ficam na VM (baseURL).
+const CLIENTE = process.env.CLIENTE_URL ?? 'http://localhost:8080';
 const marca = Date.now().toString().slice(-6);
 
 async function entrar(pagina, tipo, numero) {
@@ -60,7 +62,7 @@ test('roteiro de avaliação (17 passos)', async ({ browser }) => {
   });
 
   await test.step('5. Cliente: autenticar', async () => {
-    await cliente.goto('/socorrista/');
+    await cliente.goto(CLIENTE + '/socorrista/');
     await cliente.click('[data-simular=online]');
     await entrar(cliente, 'SOCORRISTA', 'SOC-0042');
     await expect(cliente.locator('#usuario')).toContainText('Marcos Dalpiaz');
@@ -69,14 +71,14 @@ test('roteiro de avaliação (17 passos)', async ({ browser }) => {
   await test.step('6. Cliente: sincronizar dados a partir do portal', async () => {
     await cliente.click('#botao-sincronizar');
     await expect(cliente.locator('#msg')).toContainText('Sincronização concluída');
-    await cliente.goto('/socorrista/#medicamentos');
+    await cliente.goto(CLIENTE + '/socorrista/#medicamentos');
     expect(await linhasDaTabela(cliente)).toBeGreaterThanOrEqual(10);
-    await cliente.goto('/socorrista/#pacientes');
+    await cliente.goto(CLIENTE + '/socorrista/#pacientes');
     expect(await linhasDaTabela(cliente)).toBeGreaterThanOrEqual(5);
   });
 
   await test.step('7. Cliente online: registrar atendimento', async () => {
-    await cliente.goto('/socorrista/#novo-atendimento');
+    await cliente.goto(CLIENTE + '/socorrista/#novo-atendimento');
     const form = cliente.locator('#form-atendimento');
     await form.locator('[name=paciente_id]').selectOption({ label: 'Ana Paula Ferreira' });
     await form.locator('[name=tipo_ocorrencia]').selectOption('clinica');
@@ -122,7 +124,7 @@ test('roteiro de avaliação (17 passos)', async ({ browser }) => {
   await test.step('11. Cliente: sincronizar novamente e receber o medicamento novo', async () => {
     await cliente.click('#botao-sincronizar');
     await expect(cliente.locator('#msg')).toContainText('Sincronização concluída');
-    await cliente.goto('/socorrista/#medicamentos');
+    await cliente.goto(CLIENTE + '/socorrista/#medicamentos');
     await expect(cliente.locator('#pagina tbody')).toContainText(medicamentoNovo);
   });
 
@@ -133,7 +135,7 @@ test('roteiro de avaliação (17 passos)', async ({ browser }) => {
     await expect(cliente.locator('#indicador')).toHaveText('Offline');
     cliente.on('request', (r) => { if (r.url().includes('/api/')) requisicoesOffline.push(r.url()); });
 
-    await cliente.goto('/socorrista/#pacientes');
+    await cliente.goto(CLIENTE + '/socorrista/#pacientes');
     await cliente.click('#novo');
     await cliente.fill('#form-paciente [name=nome]', vitima);
     await cliente.selectOption('#form-paciente [name=sexo]', 'M');
@@ -168,7 +170,7 @@ test('roteiro de avaliação (17 passos)', async ({ browser }) => {
     await expect(cliente.locator('#msg')).toContainText('Atendimento registrado. Guardado no dispositivo (offline)');
 
     await expect(cliente.locator('#contador-pendentes')).toHaveText('3');
-    await cliente.goto('/socorrista/#sincronizacao');
+    await cliente.goto(CLIENTE + '/socorrista/#sincronizacao');
     expect(await cliente.locator('#pagina table').first().locator('tbody tr').count()).toBe(3);
     expect(requisicoesOffline).toEqual([]);
   });
@@ -202,7 +204,7 @@ test('roteiro de avaliação (17 passos)', async ({ browser }) => {
   });
 
   await test.step('16. Gerar a ficha de atendimento em PDF', async () => {
-    await cliente.goto('/socorrista/#atendimentos');
+    await cliente.goto(CLIENTE + '/socorrista/#atendimentos');
     await cliente.locator('#pagina tbody tr', { hasText: vitima }).locator('text=Ver').click();
     await expect(cliente.locator('h2 .etiqueta')).toHaveText('sincronizado');
     const [download] = await Promise.all([cliente.waitForEvent('download'), cliente.click('#pdf')]);
@@ -224,7 +226,7 @@ test('roteiro de avaliação (17 passos)', async ({ browser }) => {
 test('sem rede de verdade: app abre pelo Service Worker e aceita login offline', async ({ browser }) => {
   const contexto = await browser.newContext();
   const pagina = await contexto.newPage();
-  await pagina.goto('/socorrista/');
+  await pagina.goto(CLIENTE + '/socorrista/');
   await pagina.click('[data-simular=online]');
   await entrar(pagina, 'COREN', '300003-RS');
   await expect(pagina.locator('#usuario')).toContainText('Juliana Schmitt');
@@ -239,7 +241,7 @@ test('sem rede de verdade: app abre pelo Service Worker e aceita login offline',
   await expect(pagina.locator('#indicador')).toHaveText('Sem rede');
   await entrar(pagina, 'COREN', '300003-RS');
   await expect(pagina.locator('#usuario')).toContainText('login offline');
-  await pagina.goto('/socorrista/#pacientes');
+  await pagina.goto(CLIENTE + '/socorrista/#pacientes');
   expect(await linhasDaTabela(pagina)).toBeGreaterThanOrEqual(5);
 
   // senha errada continua bloqueada sem rede
@@ -255,7 +257,7 @@ test('sem rede de verdade: app abre pelo Service Worker e aceita login offline',
 test('internet cai sem o navegador perceber: app detecta e volta sozinho', async ({ browser }) => {
   const contexto = await browser.newContext();
   const pagina = await contexto.newPage();
-  await pagina.goto('/socorrista/');
+  await pagina.goto(CLIENTE + '/socorrista/');
   await pagina.click('[data-simular=online]');
   await entrar(pagina, 'CRM', 'admin');
   await expect(pagina.locator('#indicador')).toHaveText('Online');
