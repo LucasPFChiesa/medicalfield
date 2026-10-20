@@ -37,6 +37,7 @@ echo "== Nginx"
 if [[ ! -f /etc/nginx/sites-available/medicalfield ]]; then
     sudo cp implantacao/nginx-medicalfield.conf /etc/nginx/sites-available/medicalfield
 fi
+sudo install -m 644 implantacao/nginx-cors.conf /etc/nginx/snippets/medicalfield-cors.conf
 sudo ln -sf /etc/nginx/sites-available/medicalfield /etc/nginx/sites-enabled/medicalfield
 sudo rm -f /etc/nginx/sites-enabled/default
 sudo nginx -t
