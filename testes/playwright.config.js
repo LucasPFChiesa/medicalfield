@@ -12,7 +12,7 @@ export default defineConfig({
   timeout: 180_000,
   workers: 1,
   reporter: [['list']],
-  // Servidor local do app do socorrista, igual ao iniciar-socorrista.sh.
+  // Servidor local do app do socorrista, igual ao iniciar-local.sh.
   webServer: {
     command: 'python3 -m http.server 8080 --bind 127.0.0.1 --directory ../web',
     url: 'http://localhost:8080/socorrista/',

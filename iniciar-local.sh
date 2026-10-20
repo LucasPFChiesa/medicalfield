@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Liga o app do socorrista neste computador e abre o navegador.
-# Uso: ./iniciar-socorrista.sh        (Ctrl+C para desligar)
+# Uso: ./iniciar-local.sh        (Ctrl+C para desligar)
+# A parte da VM é ligada/atualizada com ./iniciar-vm.sh
 #
 # - O app e os dados dele ficam aqui (IndexedDB do navegador).
 # - A plataforma central fica na VM e está sempre ligada; o app só fala com ela
