@@ -92,3 +92,21 @@ export function baixarBlob(blob, nome) {
   link.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
+
+// Título da página com uma linha explicando o que ela faz e, à direita, os botões principais.
+export function cabecalho(titulo, descricao, acoes = '') {
+  return `
+    <div class="cabecalho-pagina">
+      <div><h2>${esc(titulo)}</h2><p>${esc(descricao)}</p></div>
+      <div class="barra-acoes">${acoes}</div>
+    </div>`;
+}
+
+export function cartoes(itens) {
+  return `<div class="cartoes">${itens.map(([rotulo, valor, detalhe]) => `
+    <div class="cartao">
+      <span>${esc(rotulo)}</span>
+      <strong>${esc(valor)}</strong>
+      ${detalhe ? `<small>${esc(detalhe)}</small>` : ''}
+    </div>`).join('')}</div>`;
+}

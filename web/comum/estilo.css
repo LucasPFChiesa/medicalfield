@@ -68,6 +68,22 @@ a { color: var(--primaria); }
 }
 
 .barra-acoes { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
+
+.cabecalho-pagina { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 14px; }
+.cabecalho-pagina h2 { margin-bottom: 2px; }
+.cabecalho-pagina p { margin: 0; color: var(--texto-suave); font-size: 14px; }
+.cabecalho-pagina .barra-acoes { margin-bottom: 0; }
+
+.pesquisa { display: flex; gap: 8px; margin-bottom: 12px; max-width: 520px; }
+
+.cartoes { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.cartao { background: var(--painel); border: 1px solid var(--borda); border-left: 4px solid var(--primaria); border-radius: 6px; padding: 12px 14px; }
+.cartao span { display: block; font-size: 13px; color: var(--texto-suave); }
+.cartao strong { display: block; font-size: 28px; color: var(--primaria-escura); }
+.cartao small { color: var(--texto-suave); }
+
+.passos { margin: 0; padding-left: 20px; }
+.passos li { margin-bottom: 4px; }
 .barra-acoes .espaco { flex: 1; }
 
 /* Formulários */
@@ -101,8 +117,8 @@ button, .botao {
   text-decoration: none;
 }
 button:hover { background: var(--primaria-escura); }
-button.secundario { background: #fff; color: var(--primaria); }
-button.secundario:hover { background: #e2eef3; }
+button.secundario, .botao.secundario { background: #fff; color: var(--primaria); }
+button.secundario:hover, .botao.secundario:hover { background: #e2eef3; }
 button.perigo { background: #fff; color: var(--perigo); border-color: var(--perigo); }
 button.perigo:hover { background: #fbeceb; }
 button.pequeno { padding: 3px 9px; font-size: 13px; }

@@ -1,7 +1,7 @@
 import { chamarApi, ErroApi } from '../comum/api.js';
 import { htmlFormAtendimento, ligarFormAtendimento, lerFormAtendimento } from '../comum/form-atendimento.js';
 import {
-  esc, data, dataHora, triagem, opcoes, lerFormulario, mostrarMensagem, baixarBlob,
+  esc, data, dataHora, triagem, opcoes, lerFormulario, mostrarMensagem, baixarBlob, cabecalho, cartoes,
   TIPOS_OCORRENCIA, MANCHESTER, START, TIPOS_SANGUINEOS,
 } from '../comum/util.js';
 
@@ -374,9 +374,49 @@ async function mostrarAuditoria() {
   document.getElementById('atualizar').onclick = mostrarAuditoria;
 }
 
+// ---------- Início ----------
+
+async function mostrarInicio() {
+  const [pessoas, prontuarios, atendimentos, medicamentos, operacoes] = await Promise.all([
+    api('/pessoa'), api('/prontuario'), api('/atendimento'), api('/medicamento'), api('/sync/operacoes?limite=500'),
+  ]);
+  const hoje = new Date().toDateString();
+  const deHoje = atendimentos.filter((a) => new Date(a.data_hora).toDateString() === hoje).length;
+  const conflitos = operacoes.filter((o) => o.status === 'conflito').length;
+
+  pagina.innerHTML = `
+    ${cabecalho('Início', 'Resumo dos dados consolidados no servidor central.', '<button class="secundario" id="atualizar">Atualizar</button>')}
+    ${cartoes([
+      ['Pacientes', pessoas.length],
+      ['Prontuários', prontuarios.length],
+      ['Atendimentos', atendimentos.length, `${deHoje} hoje`],
+      ['Medicamentos', medicamentos.length],
+      ['Operações sincronizadas', operacoes.length, `${conflitos} com conflito`],
+    ])}
+    <div class="painel">
+      <h3 style="margin-top:0">Últimos atendimentos</h3>
+      ${atendimentos.length ? `<div class="tabela-container"><table>
+        <thead><tr><th>Data e hora</th><th>Paciente</th><th>Ocorrência</th><th>Manchester</th><th>Profissional</th></tr></thead>
+        <tbody>${atendimentos.slice(0, 5).map((a) => `
+          <tr><td>${dataHora(a.data_hora)}</td><td>${esc(a.paciente_nome)}</td><td>${esc(TIPOS_OCORRENCIA[a.tipo_ocorrencia])}</td>
+            <td>${triagem(a.manchester, MANCHESTER)}</td><td>${esc(a.profissional_nome)}</td></tr>`).join('')}
+        </tbody></table></div>
+        <p><a href="#atendimentos">Ver todos os atendimentos</a></p>` : '<p class="vazio">Nenhum atendimento registrado.</p>'}
+    </div>
+    <div class="painel">
+      <h3 style="margin-top:0">Acessos rápidos</h3>
+      <div class="barra-acoes">
+        <a class="botao secundario" href="/socorrista/" target="_blank">Abrir app do socorrista</a>
+        <a class="botao secundario" href="/docs/" target="_blank">Documentação da API</a>
+      </div>
+    </div>`;
+  document.getElementById('atualizar').onclick = mostrarInicio;
+}
+
 // ---------- Navegação e sessão ----------
 
 const PAGINAS = {
+  inicio: mostrarInicio,
   pacientes: () => mostrarCadastro('pacientes'),
   prontuarios: () => mostrarCadastro('prontuarios'),
   medicamentos: () => mostrarCadastro('medicamentos'),
@@ -399,11 +439,11 @@ async function executar(acao, sucesso) {
 
 async function navegar() {
   if (!sessao) return;
-  const nome = location.hash.slice(1).split('?')[0] || 'atendimentos';
+  const nome = location.hash.slice(1).split('?')[0] || 'inicio';
   document.querySelectorAll('#menu a').forEach((a) => a.classList.toggle('ativo', a.getAttribute('href') === `#${nome}`));
   mostrarMensagem(msg, '');
   pagina.innerHTML = '<p class="vazio">Carregando...</p>';
-  await executar(PAGINAS[nome] ?? PAGINAS.atendimentos);
+  await executar(PAGINAS[nome] ?? PAGINAS.inicio);
 }
 
 function mostrarTelas() {
