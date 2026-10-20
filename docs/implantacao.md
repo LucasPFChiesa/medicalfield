@@ -73,6 +73,24 @@ sudo certbot --nginx -d medicalfield.duckdns.org --non-interactive --agree-tos \
 
 O certbot acrescenta o bloco da porta 443 e o redirecionamento de HTTP para HTTPS no site do Nginx. A renovação automática fica no `certbot.timer`.
 
+## 6. Notebook do socorrista (máquina local)
+
+O app do socorrista roda no notebook, separado da VM. Pré-requisitos: Python 3 e o Chrome (ou Edge, ou Firefox).
+
+```bash
+git clone <repositório> && cd <pasta do projeto>
+implantacao/socorrista-local.sh      # deixa o terminal aberto
+```
+
+Abra `http://localhost:8080/socorrista/` e entre **uma vez com internet**. Esse primeiro acesso:
+- guarda os arquivos do app (Service Worker);
+- guarda a credencial para o login offline;
+- baixa os dados da VM.
+
+Depois disso o app funciona sem rede. Se quiser, instale como aplicativo pelo ícone "Instalar" da barra de endereço do Chrome.
+
+O endereço da plataforma central está em `web/socorrista/config.js`. Na VM, o Nginx libera as chamadas vindas de `localhost` com o arquivo `nginx-cors.conf`, instalado em `/etc/nginx/snippets/medicalfield-cors.conf` pelo `instalar.sh`.
+
 ## Operação
 
 ```bash

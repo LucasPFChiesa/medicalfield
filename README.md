@@ -4,10 +4,12 @@ Trabalho final da disciplina **Arquiteturas de Software** (Univates, 2026/B, pro
 
 Sistema *offline-first* para equipes de atendimento pré-hospitalar. O socorrista registra pacientes, prontuários e atendimentos (sinais vitais, Glasgow, Manchester, START e medicamentos administrados) mesmo sem internet. Quando a conexão volta, os registros são sincronizados com o servidor central.
 
-- Aplicação publicada: **https://medicalfield.duckdns.org**
-  - App do socorrista (PWA, funciona offline): `/socorrista/`
+O sistema roda em duas máquinas:
+
+- **VM da Univates (plataforma central):** **https://medicalfield.duckdns.org**
   - Portal administrativo: `/portal/`
   - Documentação das APIs (Swagger): `/docs/`
+- **Notebook do socorrista (app de campo):** `implantacao/socorrista-local.sh`, depois abrir **http://localhost:8080/socorrista/**. Os dados ficam no notebook e vão para a VM na sincronização.
 
 ## Visão geral
 

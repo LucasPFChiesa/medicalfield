@@ -3,16 +3,19 @@
 ## Desenho
 
 ```
-                          Navegador (Chrome, Edge, Firefox)
-   ┌──────────────────────────────┐        ┌───────────────────────────────────────┐
-   │ Portal administrativo        │        │ App do socorrista (PWA)               │
-   │ /portal/  – somente online   │        │ /socorrista/                          │
-   │                              │        │ Service Worker  → arquivos offline    │
-   │                              │        │ IndexedDB       → dados + fila outbox │
-   │                              │        │ Simulador ONLINE/OFFLINE              │
-   └──────────────┬───────────────┘        └──────────────────┬────────────────────┘
-                  └────────────────── HTTPS ──────────────────┘
+   NOTEBOOK DO SOCORRISTA (máquina local)        QUALQUER COMPUTADOR
+   ┌───────────────────────────────────────┐     ┌──────────────────────────────┐
+   │ App do socorrista (PWA)               │     │ Portal administrativo        │
+   │ http://localhost:8080/socorrista/     │     │ https://.../portal/          │
+   │ servidor local: socorrista-local.sh   │     │ somente online               │
+   │ Service Worker  → arquivos offline    │     │                              │
+   │ IndexedDB       → dados + fila outbox │     │                              │
+   │ Simulador ONLINE/OFFLINE              │     │                              │
+   └──────────────────┬────────────────────┘     └──────────────┬───────────────┘
+                      │ só na sincronização                     │
+                      └──────────── HTTPS (internet) ───────────┘
                                          │
+   VM DA UNIVATES (plataforma central)   │
                 ┌────────────────────────▼─────────────────────────┐
                 │ Nginx (VM Univates) – arquivos estáticos (web/)  │
                 │ e proxy reverso por caminho da URL               │
@@ -43,6 +46,21 @@
 ```
 
 Os três serviços rodam diretamente no Ubuntu, gerenciados pelo **systemd**. Não há contêineres, e só o Nginx fica exposto à internet (portas 80 e 443).
+
+## Duas máquinas
+
+O sistema é dividido em duas partes, que rodam em computadores diferentes:
+
+| Onde | O que roda | Como |
+|---|---|---|
+| **Notebook do socorrista** | Só o app do socorrista: arquivos do app (HTML, CSS, JS) e dados locais | `implantacao/socorrista-local.sh` liga um servidor local simples (`python3 -m http.server`) em `http://localhost:8080`. Os dados ficam no IndexedDB do navegador do notebook |
+| **VM da Univates** | Plataforma central: portal, os três serviços, PostgreSQL e Nginx | systemd + Nginx com HTTPS em `https://medicalfield.duckdns.org` |
+
+- O app do notebook **não depende da VM para funcionar**: abre, faz login offline e grava tudo localmente.
+- Ele só fala com a VM na **sincronização**: envia a fila (push) e baixa as novidades (pull) pela API em HTTPS. O endereço da VM fica em [web/socorrista/config.js](../web/socorrista/config.js).
+- **Por que `localhost`:** o navegador só libera Service Worker e criptografia (`crypto.subtle`) em endereços seguros, que são HTTPS ou `localhost`. Por isso o app no notebook funciona sem certificado e sem túnel.
+- **CORS:** como o app (`http://localhost:8080`) e a API (`https://medicalfield.duckdns.org`) têm endereços diferentes, o navegador só permite as chamadas se a VM autorizar. O Nginx autoriza apenas origens `localhost`/`127.0.0.1` ([implantacao/nginx-cors.conf](../implantacao/nginx-cors.conf)).
+- A VM também continua servindo uma cópia do app em `/socorrista/`, útil como reserva se o notebook não tiver o projeto.
 
 ## Tecnologias
 

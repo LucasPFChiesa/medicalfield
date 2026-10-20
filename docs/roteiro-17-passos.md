@@ -4,7 +4,7 @@
 
 - Use duas janelas do navegador lado a lado:
   - **Portal:** https://medicalfield.duckdns.org/portal/
-  - **Cliente:** https://medicalfield.duckdns.org/socorrista/
+  - **Cliente (no notebook):** rode `implantacao/socorrista-local.sh` e abra http://localhost:8080/socorrista/
 - Deixe um terminal aberto com acesso à VM: `ssh univates@177.44.248.50`.
 - Login simples: tipo **CRM**, número **admin**, senha **admin** (portal e cliente). Os outros usuários de exemplo também usam a senha `admin`.
 - Para começar com o banco limpo, só com os dados fictícios: na VM, rode `cd /opt/medicalfield && banco/criar_banco.sh --recriar` e depois `sudo systemctl restart 'medicalfield-*'`.
