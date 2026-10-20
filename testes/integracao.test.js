@@ -124,10 +124,16 @@ test('conflito em paciente: última escrita vence', async () => {
   assert.equal(noPortal.corpo.versao, 2);
 
   // dispositivo envia edição feita sobre a versão 1, mas mais antiga que a do portal: servidor mantém
-  const antiga = await enviar([operacao('paciente', 'atualizar',
-    { ...pessoa, nome: 'Edição Antiga', alterado_no_cliente_em: '2026-01-01T00:00:00Z' }, 1)]);
+  const opAntiga = operacao('paciente', 'atualizar',
+    { ...pessoa, nome: 'Edição Antiga', alterado_no_cliente_em: '2026-01-01T00:00:00Z' }, 1);
+  const antiga = await enviar([opAntiga]);
   assert.equal(antiga.corpo.resultados[0].status, 'conflito');
   assert.equal(antiga.corpo.resultados[0].registro.nome, 'Nome do Portal');
+
+  // as duas versões ficam guardadas para consulta no portal
+  const detalhe = await chamar(SYNC, 'GET', `/api/sync/operacoes/${opAntiga.op_id}`, admin);
+  assert.equal(detalhe.corpo.payload_cliente.nome, 'Edição Antiga');
+  assert.equal(detalhe.corpo.payload_servidor.nome, 'Nome do Portal');
 
   // edição mais recente que a do portal: dispositivo vence
   const recente = await enviar([operacao('paciente', 'atualizar',

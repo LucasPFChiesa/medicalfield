@@ -194,3 +194,30 @@ func listarOperacoes(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(lista)
 }
+
+// GET /api/sync/operacoes/{id}: uma operação com as duas versões do registro,
+// a que o dispositivo enviou (payload_cliente) e a que ficou no servidor
+// (payload_servidor). Usada no portal para mostrar como um conflito foi resolvido.
+func detalharOperacao(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	if !formatoUUID.MatchString(id) {
+		responderErro(w, http.StatusBadRequest, "id deve ser um UUID")
+		return
+	}
+	var operacao json.RawMessage
+	err := banco.QueryRow(r.Context(), `
+		SELECT row_to_json(x) FROM (
+			SELECT s.*, p.nome AS profissional_nome
+			FROM sync_operacao s LEFT JOIN profissional p ON p.id = s.profissional_id
+			WHERE s.op_id = $1) x`, id).Scan(&operacao)
+	if errors.Is(err, pgx.ErrNoRows) {
+		responderErro(w, http.StatusNotFound, "Operação não encontrada")
+		return
+	}
+	if err != nil {
+		responderErro(w, http.StatusInternalServerError, "Erro ao consultar a operação")
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(operacao)
+}

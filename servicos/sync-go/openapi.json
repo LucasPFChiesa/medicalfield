@@ -41,6 +41,14 @@
         "responses": { "200": { "description": "Últimas operações" } }
       }
     },
+    "/api/sync/operacoes/{id}": {
+      "get": {
+        "tags": ["Sincronização"],
+        "summary": "Uma operação com a versão enviada pelo dispositivo e a versão que ficou no servidor",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "description": "op_id da operação", "schema": { "type": "string", "format": "uuid" } }],
+        "responses": { "200": { "description": "Operação com payload_cliente e payload_servidor" }, "404": { "description": "Operação não encontrada" } }
+      }
+    },
     "/api/log": {
       "post": {
         "tags": ["Auditoria"],

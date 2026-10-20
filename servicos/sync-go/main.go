@@ -43,6 +43,7 @@ func rotas() http.Handler {
 	protegidas.HandleFunc("POST /api/sync/push", push)
 	protegidas.HandleFunc("GET /api/sync/pull", pull)
 	protegidas.HandleFunc("GET /api/sync/operacoes", listarOperacoes)
+	protegidas.HandleFunc("GET /api/sync/operacoes/{id}", detalharOperacao)
 	protegidas.HandleFunc("POST /api/log", receberLogs)
 	mux.Handle("/api/", exigirToken(protegidas))
 
