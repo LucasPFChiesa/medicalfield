@@ -5,7 +5,7 @@ import { entrar, sair, sessaoAtual, tokenValido } from './sessao.js';
 import * as db from './db-local.js';
 import { htmlFormAtendimento, ligarFormAtendimento, lerFormAtendimento } from '../comum/form-atendimento.js';
 import {
-  esc, data, dataHora, triagem, opcoes, lerFormulario, mostrarMensagem, baixarBlob,
+  esc, data, dataHora, triagem, opcoes, lerFormulario, mostrarMensagem, baixarBlob, cabecalho, cartoes,
   TIPOS_OCORRENCIA, MANCHESTER, START, TIPOS_SANGUINEOS,
 } from '../comum/util.js';
 
@@ -31,6 +31,34 @@ function situacao(id, pendentes) {
   return pendentes.has(id)
     ? '<span class="etiqueta pendente">pendente</span>'
     : '<span class="etiqueta ok">sincronizado</span>';
+}
+
+// ---------- Início ----------
+
+// Mostra o que está guardado neste dispositivo (IndexedDB), por isso funciona offline.
+async function paginaInicio() {
+  const [listaPacientes, listaAtendimentos, listaMedicamentos, pendentes, ultima] = await Promise.all([
+    pacientes.listar(), atendimentos.listar(), medicamentos.listar(), contarPendentes(), db.lerMeta('ultima_sincronizacao'),
+  ]);
+
+  pagina.innerHTML = `
+    ${cabecalho('Início', 'Dados guardados neste dispositivo.', `
+      <a class="botao" href="#novo-atendimento">Registrar atendimento</a>`)}
+    ${cartoes([
+      ['Pacientes', listaPacientes.length],
+      ['Atendimentos', listaAtendimentos.length],
+      ['Medicamentos', listaMedicamentos.length],
+      ['Pendentes de envio', pendentes, `Última sincronização: ${dataHora(ultima)}`],
+    ])}
+    <div class="painel">
+      <h3 style="margin-top:0">Antes de sair para o atendimento</h3>
+      <ol class="passos">
+        <li>Entre no sistema enquanto houver conexão.</li>
+        <li>Clique em <strong>Sincronizar</strong> para baixar pacientes e medicamentos.</li>
+        <li>Confira se os dados aparecem em Pacientes e Medicamentos.</li>
+        <li>A partir daí o app funciona sem internet. Quando a conexão voltar, os registros pendentes são enviados sozinhos.</li>
+      </ol>
+    </div>`;
 }
 
 // ---------- Pacientes ----------
@@ -406,6 +434,7 @@ async function atualizarTopo() {
 }
 
 const PAGINAS = {
+  inicio: paginaInicio,
   pacientes: paginaPacientes,
   paciente: paginaPaciente,
   'novo-atendimento': paginaNovoAtendimento,
@@ -427,7 +456,7 @@ async function executar(acao, sucesso) {
 async function navegar(limparMensagem = true) {
   if (!sessao) return;
   const [nome, parametro] = location.hash.slice(1).split('?')[0].split('/');
-  const atual = PAGINAS[nome] ? nome : 'pacientes';
+  const atual = PAGINAS[nome] ? nome : 'inicio';
   document.querySelectorAll('#menu a').forEach((a) => {
     a.classList.toggle('ativo', a.getAttribute('href') === `#${atual}` || (atual === 'paciente' && a.getAttribute('href') === '#pacientes'));
   });
