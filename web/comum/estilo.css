@@ -133,6 +133,7 @@ tr:hover td { background: #f8fafb; }
 td.acoes { white-space: nowrap; }
 td.acoes button { margin-right: 4px; }
 .vazio { color: var(--texto-suave); font-style: italic; padding: 12px 0; }
+tr.diferente td { background: #fff4e0; }
 
 /* Mensagens */
 .mensagem { padding: 9px 12px; border-radius: 4px; margin-bottom: 12px; border: 1px solid; }

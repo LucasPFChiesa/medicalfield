@@ -359,19 +359,50 @@ async function mostrarSincronizacoes() {
   pagina.innerHTML = `
     ${cabecalho('Sincronizações', 'Rastro de cada operação enviada pelos dispositivos ao serviço de sincronização.',
       '<button class="secundario" id="atualizar">Atualizar</button>')}
+    <div id="area-detalhe"></div>
     <div class="tabela-container"><table>
       <thead><tr><th>Recebida em</th><th>Dispositivo</th><th>Profissional</th><th>Entidade</th><th>Ação</th>
-        <th>Versão base</th><th>Situação</th><th>Mensagem</th></tr></thead>
+        <th>Versão base</th><th>Situação</th><th>Mensagem</th><th></th></tr></thead>
       <tbody>${operacoes.map((o) => `
         <tr>
           <td>${dataHora(o.recebido_em)}</td><td>${esc(o.dispositivo_id.slice(0, 8))}</td><td>${esc(o.profissional_nome ?? '-')}</td>
           <td>${esc(o.entidade)}</td><td>${esc(o.acao)}</td><td>${o.versao_base}</td>
           <td><span class="etiqueta ${classe[o.status]}">${esc(o.status)}</span></td><td>${esc(o.mensagem ?? '')}</td>
+          <td class="acoes"><button class="secundario pequeno" data-ver="${o.op_id}">Ver</button></td>
         </tr>`).join('')}
       </tbody></table>
       ${operacoes.length ? '' : '<p class="vazio">Nenhuma sincronização recebida.</p>'}
     </div>`;
   document.getElementById('atualizar').onclick = mostrarSincronizacoes;
+  pagina.querySelectorAll('[data-ver]').forEach((b) => { b.onclick = () => verOperacao(b.dataset.ver); });
+}
+
+// Mostra, campo a campo, o que o dispositivo enviou e o que ficou no servidor.
+// As linhas diferentes ficam destacadas: é ali que estava o conflito.
+async function verOperacao(opId) {
+  const o = await api(`/sync/operacoes/${opId}`);
+  const cliente = o.payload_cliente ?? {};
+  const servidor = o.payload_servidor ?? {};
+  const ignorar = ['id', 'versao', 'versao_base', 'seq_alteracao', 'criado_em', 'atualizado_em', 'excluido_em', 'criado_por', 'medicamentos'];
+  const campos = [...new Set([...Object.keys(cliente), ...Object.keys(servidor)])].filter((c) => !ignorar.includes(c));
+  const mostrar = (valor) => (valor === null || valor === undefined || valor === '' ? '-' : esc(valor));
+
+  const area = document.getElementById('area-detalhe');
+  area.innerHTML = `
+    <div class="painel">
+      <h3 style="margin-top:0">Operação ${esc(o.acao)} de ${esc(o.entidade)} – ${esc(o.status)}</h3>
+      <p>${esc(o.mensagem ?? 'Aplicada sem conflito.')}</p>
+      <div class="tabela-container"><table>
+        <thead><tr><th>Campo</th><th>Enviado pelo dispositivo</th><th>Ficou no servidor</th></tr></thead>
+        <tbody>${campos.map((c) => `
+          <tr class="${String(cliente[c] ?? '') !== String(servidor[c] ?? '') ? 'diferente' : ''}">
+            <td>${esc(c)}</td><td>${mostrar(cliente[c])}</td><td>${mostrar(servidor[c])}</td>
+          </tr>`).join('')}
+        </tbody></table></div>
+      <button class="secundario" id="fechar">Fechar</button>
+    </div>`;
+  area.scrollIntoView({ behavior: 'smooth' });
+  document.getElementById('fechar').onclick = () => { area.innerHTML = ''; };
 }
 
 async function mostrarAuditoria() {
