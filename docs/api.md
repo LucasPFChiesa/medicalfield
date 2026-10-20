@@ -74,6 +74,7 @@ Exemplo de corpo do `POST /atendimento`:
 | POST | `/sync/push` | Recebe a fila do dispositivo (até 200 operações) e devolve o resultado de cada uma |
 | GET | `/sync/pull?desde=N` | Tudo que mudou depois do cursor N, mais o novo cursor |
 | GET | `/sync/operacoes?limite=` | Rastro das operações recebidas (usado pelo portal) |
+| GET | `/sync/operacoes/{op_id}` | Uma operação com a versão enviada pelo dispositivo (`payload_cliente`) e a que ficou no servidor (`payload_servidor`) |
 | POST | `/log` | Logs gravados pelo app enquanto estava offline |
 
 Exemplo de `POST /sync/push`:

@@ -79,10 +79,10 @@ O app do socorrista roda no notebook, separado da VM. Pré-requisitos: Python 3 
 
 ```bash
 git clone <repositório> && cd <pasta do projeto>
-implantacao/socorrista-local.sh      # deixa o terminal aberto
+./iniciar-socorrista.sh    # liga o app, abre o navegador; deixe o terminal aberto
 ```
 
-Abra `http://localhost:8080/socorrista/` e entre **uma vez com internet**. Esse primeiro acesso:
+O navegador abre em `http://localhost:8080/socorrista/`. Entre **uma vez com internet**. Esse primeiro acesso:
 - guarda os arquivos do app (Service Worker);
 - guarda a credencial para o login offline;
 - baixa os dados da VM.

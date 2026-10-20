@@ -7,7 +7,7 @@
    ┌───────────────────────────────────────┐     ┌──────────────────────────────┐
    │ App do socorrista (PWA)               │     │ Portal administrativo        │
    │ http://localhost:8080/socorrista/     │     │ https://.../portal/          │
-   │ servidor local: socorrista-local.sh   │     │ somente online               │
+   │ ligar: ./iniciar-socorrista.sh        │     │ somente online               │
    │ Service Worker  → arquivos offline    │     │                              │
    │ IndexedDB       → dados + fila outbox │     │                              │
    │ Simulador ONLINE/OFFLINE              │     │                              │
@@ -53,7 +53,7 @@ O sistema é dividido em duas partes, que rodam em computadores diferentes:
 
 | Onde | O que roda | Como |
 |---|---|---|
-| **Notebook do socorrista** | Só o app do socorrista: arquivos do app (HTML, CSS, JS) e dados locais | `implantacao/socorrista-local.sh` liga um servidor local simples (`python3 -m http.server`) em `http://localhost:8080`. Os dados ficam no IndexedDB do navegador do notebook |
+| **Notebook do socorrista** | Só o app do socorrista: arquivos do app (HTML, CSS, JS) e dados locais | `iniciar-socorrista.sh` liga um servidor local simples (`python3 -m http.server`) em `http://localhost:8080`. Os dados ficam no IndexedDB do navegador do notebook |
 | **VM da Univates** | Plataforma central: portal, os três serviços, PostgreSQL e Nginx | systemd + Nginx com HTTPS em `https://medicalfield.duckdns.org` |
 
 - O app do notebook **não depende da VM para funcionar**: abre, faz login offline e grava tudo localmente.

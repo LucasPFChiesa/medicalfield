@@ -33,7 +33,7 @@ Os três primeiros são os sugeridos pelo documento do trabalho. Os outros três
 2. Editar a mesma pessoa no app em modo OFFLINE.
 3. Voltar para ONLINE.
 
-O histórico mostra a mensagem `Conflito resolvido por "última escrita vence"`. Os testes estão em `conflitos_test.go` e em `testes/integracao.test.js`.
+O histórico mostra a mensagem `Conflito resolvido por "última escrita vence"`. No portal, em **Sincronizações → Ver**, aparecem lado a lado a versão do dispositivo e a do servidor, com os campos diferentes destacados. Os testes estão em `conflitos_test.go` e em `testes/integracao.test.js`.
 
 ## 3. Observer
 
