@@ -9,7 +9,16 @@ O sistema roda em duas máquinas:
 - **VM da Univates (plataforma central):** **https://medicalfield.duckdns.org**
   - Portal administrativo: `/portal/`
   - Documentação das APIs (Swagger): `/docs/`
-- **Notebook do socorrista (app de campo):** rode `./iniciar-socorrista.sh` na pasta do projeto. Ele liga o app e abre o navegador em **http://localhost:8080/socorrista/**. Os dados ficam no notebook e vão para a VM na sincronização.
+- **Notebook do socorrista (app de campo):** rode `./iniciar-local.sh` na pasta do projeto. Ele liga o app e abre o navegador em **http://localhost:8080/socorrista/**. Os dados ficam no notebook e vão para a VM na sincronização.
+
+## Os dois comandos
+
+Os dois são executados no seu computador, na pasta do projeto:
+
+| Comando | Para que serve |
+|---|---|
+| `./iniciar-local.sh` | Liga o **app do socorrista** neste computador e abre o navegador. Deixe o terminal aberto; Ctrl+C desliga |
+| `./iniciar-vm.sh` | **Atualiza a VM**: envia o código, reinstala e reinicia os serviços e confere se tudo responde. Só é preciso depois de mudar o código, porque na VM os serviços já sobem sozinhos |
 
 ## Visão geral
 

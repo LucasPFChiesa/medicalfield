@@ -79,7 +79,7 @@ O app do socorrista roda no notebook, separado da VM. Pré-requisitos: Python 3 
 
 ```bash
 git clone <repositório> && cd <pasta do projeto>
-./iniciar-socorrista.sh    # liga o app, abre o navegador; deixe o terminal aberto
+./iniciar-local.sh    # liga o app, abre o navegador; deixe o terminal aberto
 ```
 
 O navegador abre em `http://localhost:8080/socorrista/`. Entre **uma vez com internet**. Esse primeiro acesso:
@@ -102,9 +102,12 @@ sudo nginx -t && sudo systemctl reload nginx
 
 ## Atualizar o sistema
 
+Do seu computador, na pasta do projeto:
+
 ```bash
-rsync -az --exclude node_modules --exclude .venv --exclude testes/node_modules ./ univates@177.44.248.50:/opt/medicalfield/
-ssh univates@177.44.248.50 /opt/medicalfield/implantacao/instalar.sh
+./iniciar-vm.sh
 ```
+
+Ele envia o código (`rsync`), roda o `instalar.sh` na VM e confere as rotas principais pela internet. O banco de dados não é apagado.
 
 Se algum arquivo do app do socorrista mudar, aumente a versão em `CACHE` no [sw.js](../web/socorrista/sw.js). Assim os navegadores trocam a cópia guardada para uso offline.
