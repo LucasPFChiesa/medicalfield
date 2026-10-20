@@ -199,13 +199,25 @@ async function abrirFormulario(cfg, chave, registro = null) {
 
 // ---------- Atendimentos ----------
 
+// A pesquisa é feita no navegador, sobre a lista já carregada:
+// procura o texto no nome do paciente, no tipo de ocorrência e no profissional.
+function filtrarAtendimentos(atendimentos, busca) {
+  const texto = busca.toLowerCase();
+  return atendimentos.filter((a) =>
+    [a.paciente_nome, TIPOS_OCORRENCIA[a.tipo_ocorrencia], a.profissional_nome]
+      .some((campo) => (campo ?? '').toLowerCase().includes(texto)));
+}
+
 async function mostrarAtendimentos() {
-  const atendimentos = await api('/atendimento');
+  const busca = new URLSearchParams(location.hash.split('?')[1]).get('busca') ?? '';
+  const atendimentos = filtrarAtendimentos(await api('/atendimento'), busca);
   pagina.innerHTML = `
-    <h2>Atendimentos</h2>
-    <div class="barra-acoes">
-      <button class="secundario" id="atualizar">Atualizar</button>
-    </div>
+    ${cabecalho('Atendimentos', 'Registros feitos pelas equipes, com ficha em PDF e envio por e-mail.',
+      '<button class="secundario" id="atualizar">Atualizar</button>')}
+    <form id="form-busca" class="pesquisa">
+      <input name="busca" placeholder="Pesquisar por paciente, ocorrência ou profissional" value="${esc(busca)}">
+      <button type="submit" class="secundario">Pesquisar</button>
+    </form>
     <div id="area-detalhe"></div>
     <div class="tabela-container">
       <table>
@@ -235,6 +247,10 @@ async function mostrarAtendimentos() {
     <p class="vazio">${atendimentos.length} atendimento(s).</p>`;
 
   document.getElementById('atualizar').onclick = mostrarAtendimentos;
+  document.getElementById('form-busca').onsubmit = (e) => {
+    e.preventDefault();
+    location.hash = `atendimentos?busca=${encodeURIComponent(e.target.busca.value)}`;
+  };
   pagina.querySelectorAll('[data-ver]').forEach((b) => { b.onclick = () => verAtendimento(b.dataset.ver); });
   pagina.querySelectorAll('[data-editar]').forEach((b) => { b.onclick = () => editarAtendimento(b.dataset.editar); });
   pagina.querySelectorAll('[data-pdf]').forEach((b) => { b.onclick = () => baixarPdf(b.dataset.pdf); });
@@ -341,9 +357,8 @@ async function mostrarSincronizacoes() {
   const operacoes = await api('/sync/operacoes?limite=200');
   const classe = { aplicada: 'ok', conflito: 'pendente', erro: 'falha' };
   pagina.innerHTML = `
-    <h2>Sincronizações recebidas</h2>
-    <p>Rastro de cada operação enviada pelos dispositivos ao serviço de sincronização.</p>
-    <div class="barra-acoes"><button class="secundario" id="atualizar">Atualizar</button></div>
+    ${cabecalho('Sincronizações', 'Rastro de cada operação enviada pelos dispositivos ao serviço de sincronização.',
+      '<button class="secundario" id="atualizar">Atualizar</button>')}
     <div class="tabela-container"><table>
       <thead><tr><th>Recebida em</th><th>Dispositivo</th><th>Profissional</th><th>Entidade</th><th>Ação</th>
         <th>Versão base</th><th>Situação</th><th>Mensagem</th></tr></thead>
@@ -364,10 +379,10 @@ async function mostrarAuditoria() {
   const logs = await api(`/auditoria?limite=300${servico ? `&servico=${servico}` : ''}`);
   const servicos = { cadastros: 'Cadastros (Node)', atendimentos: 'Atendimentos (Python)', sync: 'Sincronização (Go)', 'app-socorrista': 'App do socorrista (offline)' };
   pagina.innerHTML = `
-    <h2>Auditoria de acessos</h2>
-    <div class="barra-acoes">
-      <select id="filtro" style="max-width:280px">${opcoes(servicos, servico, 'Todos os serviços')}</select>
-      <button class="secundario" id="atualizar">Atualizar</button>
+    ${cabecalho('Auditoria', 'Últimos acessos registrados pelos três serviços e pelo app do socorrista.',
+      '<button class="secundario" id="atualizar">Atualizar</button>')}
+    <div class="pesquisa">
+      <select id="filtro">${opcoes(servicos, servico, 'Todos os serviços')}</select>
     </div>
     <div class="tabela-container"><table>
       <thead><tr><th>Data e hora</th><th>Serviço</th><th>IP</th><th>Profissional</th><th>Método</th><th>Rota</th><th>Status</th><th>Tempo (ms)</th></tr></thead>
