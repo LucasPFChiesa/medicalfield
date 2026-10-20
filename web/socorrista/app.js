@@ -3,6 +3,7 @@ import { estaOnline, simuladorEstaOnline, definirSimulador, assinar } from './co
 import { sincronizar, contarPendentes, historico, descartar } from './outbox.js';
 import { entrar, sair, sessaoAtual, tokenValido } from './sessao.js';
 import * as db from './db-local.js';
+import { pacienteExemplo, atendimentoExemplo, preencherFormulario } from './exemplos.js';
 import { htmlFormAtendimento, ligarFormAtendimento, lerFormAtendimento } from '../comum/form-atendimento.js';
 import {
   esc, data, dataHora, triagem, opcoes, lerFormulario, mostrarMensagem, baixarBlob, cabecalho, cartoes,
@@ -113,8 +114,12 @@ function formPaciente(area, paciente = {}) {
       </div>
       <button type="submit">Salvar</button>
       <button type="button" class="secundario" data-cancelar>Cancelar</button>
+      ${paciente.id ? '' : '<button type="button" class="secundario" data-exemplo>Preencher exemplo</button>'}
     </form>`;
   area.querySelector('[data-cancelar]').onclick = () => { area.innerHTML = ''; };
+  area.querySelector('[data-exemplo]')?.addEventListener('click', () => {
+    preencherFormulario(area.querySelector('form'), pacienteExemplo());
+  });
   area.querySelector('form').onsubmit = async (e) => {
     e.preventDefault();
     const salvo = await pacientes.salvar({ ...lerFormulario(e.target), id: paciente.id });
@@ -217,6 +222,7 @@ async function paginaNovoAtendimento(pacienteId) {
     <form class="painel" id="form-atendimento">
       ${htmlFormAtendimento({ pacientes: listaPacientes, atendimento: { paciente_id: pacienteId } })}
       <button type="submit">Salvar atendimento</button>
+      <button type="button" class="secundario" id="exemplo">Preencher exemplo</button>
     </form>`;
 
   const form = document.getElementById('form-atendimento');
@@ -224,6 +230,7 @@ async function paginaNovoAtendimento(pacienteId) {
     medicamentos: await medicamentos.listar(),
     alergiasDoPaciente: async (id) => (await prontuarios.listarDoPaciente(id))[0]?.alergias,
   });
+  document.getElementById('exemplo').onclick = () => preencherAtendimentoExemplo(form);
   form.onsubmit = async (e) => {
     e.preventDefault();
     const dados = lerFormAtendimento(form);
@@ -241,6 +248,26 @@ async function paginaNovoAtendimento(pacienteId) {
     await irPara(`atendimento/${salvo.id}`);
     await depoisDeGravar('Atendimento registrado.');
   };
+}
+
+// O paciente continua sendo escolhido pelo usuário; o exemplo preenche o resto
+// e adiciona uma linha com o medicamento administrado.
+function preencherAtendimentoExemplo(form) {
+  const { medicamento, dose, unidade, ...campos } = atendimentoExemplo();
+  preencherFormulario(form, campos);
+
+  form.querySelector('[data-adicionar-medicamento]').click();
+  const linha = form.querySelector('.linha-medicamento-bloco:last-child');
+  const seletor = linha.querySelector('[name=medicamento_id]');
+  const opcao = [...seletor.options].find((o) => o.textContent === medicamento);
+  if (!opcao) {
+    linha.remove(); // medicamento do exemplo ainda não foi baixado neste dispositivo
+    return;
+  }
+  seletor.value = opcao.value;
+  seletor.dispatchEvent(new Event('change')); // preenche a via e mostra os alertas
+  linha.querySelector('[name=dose]').value = dose;
+  linha.querySelector('[name=unidade]').value = unidade;
 }
 
 async function paginaAtendimento(id) {

@@ -1,7 +1,7 @@
 // Service Worker do app do socorrista: guarda os arquivos da aplicação para
 // que ela abra mesmo sem internet. Os dados não passam por aqui (ficam no
 // IndexedDB) e as chamadas /api/ sempre vão direto para a rede.
-const CACHE = 'medicalfield-app-v4';
+const CACHE = 'medicalfield-app-v5';
 
 const ARQUIVOS = [
   '/socorrista/',
@@ -11,6 +11,7 @@ const ARQUIVOS = [
   '/socorrista/conectividade.js',
   '/socorrista/outbox.js',
   '/socorrista/sessao.js',
+  '/socorrista/exemplos.js',
   '/socorrista/manifest.json',
   '/socorrista/icone.svg',
   '/comum/estilo.css',
