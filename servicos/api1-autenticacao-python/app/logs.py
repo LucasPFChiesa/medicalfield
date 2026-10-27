@@ -12,7 +12,7 @@ def gravar_log(ip, profissional_id, metodo, rota, status, duracao_ms):
         with pool.connection() as con:
             con.execute(
                 """INSERT INTO log_acesso (servico, ip, profissional_id, metodo, rota, status, duracao_ms)
-                   VALUES ('atendimentos', %s, %s, %s, %s, %s, %s)""",
+                   VALUES ('api1', %s, %s, %s, %s, %s, %s)""",
                 (ip, profissional_id, metodo, rota, status, round(duracao_ms, 2)),
             )
     except Exception as erro:

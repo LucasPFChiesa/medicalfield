@@ -3,6 +3,7 @@ uvicorn==0.54.0
 psycopg[binary]==3.3.6
 psycopg-pool==3.3.3
 PyJWT==2.15.1
+bcrypt==5.0.0
 fpdf2==2.8.9
 # testes
 pytest==9.1.1

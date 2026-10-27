@@ -9,7 +9,7 @@ pool = ConnectionPool(
     conninfo=(
         f"host={os.environ.get('DB_HOST', 'localhost')} "
         f"dbname={os.environ.get('DB_NOME', 'medicalfield')} "
-        f"user=mf_atendimentos password={os.environ.get('DB_SENHA_ATENDIMENTOS', '')}"
+        f"user=mf_api1 password={os.environ.get('DB_SENHA_API1', '')}"
     ),
     kwargs={"row_factory": dict_row},
     min_size=1,
