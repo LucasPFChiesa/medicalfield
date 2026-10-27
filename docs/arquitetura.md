@@ -20,32 +20,31 @@
                 │ Nginx (VM Univates) – arquivos estáticos (web/)  │
                 │ e proxy reverso por caminho da URL               │
                 └───┬──────────────────────┬──────────────────┬────┘
-   /api/auth, /pessoa, /prontuario,   /api/atendimento     /api/sync, /api/log
-   /medicamento, /profissional,            │                     │
-   /auditoria                              │                     │
+   /api/auth, /log, /email,      /api/prontuario,     /api/pessoa,
+   /documento, /profissional,    /api/sync            /api/medicamento,
+   /auditoria                              │          /api/atendimento
                     ▼                      ▼                     ▼
        ┌──────────────────────┐ ┌──────────────────────┐ ┌──────────────────────┐
-       │ cadastros            │ │ atendimentos         │ │ sincronização        │
-       │ Node.js + Express    │ │ Python + FastAPI     │ │ Go                   │
-       │ 127.0.0.1:3001       │ │ 127.0.0.1:8001       │ │ 127.0.0.1:8002       │
-       │ login e emissão JWT  │ │ atendimentos         │ │ push (fila offline)  │
-       │ pessoas, prontuários │ │ sinais vitais,       │ │ pull (cursor)        │
-       │ medicamentos         │ │ Glasgow, triagem     │ │ idempotência         │
-       │ profissionais        │ │ ficha PDF, e-mail    │ │ conflitos (Strategy) │
-       │ consulta auditoria   │ │                      │ │ logs do app offline  │
-       └──────────┬───────────┘ └──────────┬───────────┘ └───┬──────────────┬───┘
-                  │       ▲                │      ▲          │ só leitura   │
-                  │       └──── HTTP PUT ──┼──────┴──────────┘ (SELECT)     │
-                  │          (o Go grava pela API do dono)                  │
-                  ▼                        ▼                                ▼
+       │ API 1                │ │ API 2                │ │ API 3                │
+       │ Python + FastAPI     │ │ Go                   │ │ Node.js + Express    │
+       │ 127.0.0.1:8001       │ │ 127.0.0.1:8002       │ │ 127.0.0.1:3001       │
+       │ login e emissão JWT  │ │ prontuários          │ │ pessoas              │
+       │ profissionais        │ │ sync push / pull     │ │ medicamentos         │
+       │ logs e auditoria     │ │ idempotência         │ │ atendimentos (sinais │
+       │ ficha PDF, e-mail    │ │ conflitos (Strategy) │ │ vitais, Glasgow...)  │
+       └──────────┬───────────┘ └───┬──────────────┬───┘ └──────────┬───────────┘
+                  │                 │  HTTP PUT    ▲                │
+                  │                 └──────────────┼────────────────┘
+                  │        (a API 2 grava pessoa e atendimento pela API 3)
+                  ▼                        ▼                        ▼
               ┌──────────────────────────────────────────────────────────────┐
               │ PostgreSQL – banco medicalfield                              │
-              │ um usuário por serviço: mf_cadastros, mf_atendimentos,       │
-              │ mf_sync, cada um com permissão de escrita só no que é seu    │
+              │ um usuário por API: mf_api1, mf_api2, mf_api3, cada um com   │
+              │ permissão de escrita só nas tabelas que são suas             │
               └──────────────────────────────────────────────────────────────┘
 ```
 
-Os três serviços rodam diretamente no Ubuntu, gerenciados pelo **systemd**. Não há contêineres, e só o Nginx fica exposto à internet (portas 80 e 443).
+As três APIs rodam diretamente no Ubuntu, gerenciadas pelo **systemd** (`medicalfield-api1`, `medicalfield-api2`, `medicalfield-api3`). Não há contêineres, e só o Nginx fica exposto à internet (portas 80 e 443).
 
 ## Duas máquinas
 
@@ -54,7 +53,7 @@ O sistema é dividido em duas partes, que rodam em computadores diferentes:
 | Onde | O que roda | Como |
 |---|---|---|
 | **Notebook do socorrista** | Só o app do socorrista: arquivos do app (HTML, CSS, JS) e dados locais | `iniciar-local.sh` liga um servidor local simples (`python3 -m http.server`) em `http://localhost:8080`. Os dados ficam no IndexedDB do navegador do notebook |
-| **VM da Univates** | Plataforma central: portal, os três serviços, PostgreSQL e Nginx | systemd + Nginx com HTTPS em `https://medicalfield.duckdns.org` |
+| **VM da Univates** | Plataforma central: portal, as três APIs, PostgreSQL e Nginx | systemd + Nginx com HTTPS em `https://medicalfield.duckdns.org` |
 
 - O app do notebook **não depende da VM para funcionar**: abre, faz login offline e grava tudo localmente.
 - Ele só fala com a VM na **sincronização**: envia a fila (push) e baixa as novidades (pull) pela API em HTTPS. O endereço da VM fica em [web/socorrista/config.js](../web/socorrista/config.js).
@@ -68,45 +67,47 @@ O sistema é dividido em duas partes, que rodam em computadores diferentes:
 |---|---|---|
 | Frontend | HTML, CSS e JavaScript puro (módulos ES) | O foco do trabalho não é a interface; sem build, fácil de explicar |
 | Offline | Service Worker + IndexedDB | São os recursos nativos do navegador para app offline e banco local |
-| Serviço 1 | Node.js 22 + Express 5 | Mesma linguagem do frontend, ótimo para API REST simples |
-| Serviço 2 | Python 3.14 + FastAPI | Validação declarativa (Pydantic), Swagger automático e boas bibliotecas de PDF (fpdf2) e e-mail (`smtplib`) |
-| Serviço 3 | Go 1.26 (`net/http`) | Bom para um serviço de "infraestrutura" que processa lotes e chama outros serviços; gera um único executável |
+| API 1 | Python 3.14 + FastAPI | Validação declarativa (Pydantic), Swagger automático, bcrypt/JWT e boas bibliotecas de PDF (fpdf2) e e-mail (`smtplib`) |
+| API 2 | Go 1.26 (`net/http`) | Bom para a sincronização, que processa lotes e chama outra API; gera um único executável |
+| API 3 | Node.js 22 + Express 5 | Mesma linguagem do frontend, ótimo para os CRUDs de pessoas, medicamentos e atendimentos |
 | Banco | PostgreSQL 18 | Relacional, com transações, triggers, `jsonb` e controle de permissões por usuário |
-| Autenticação | JWT (HS256) | Cada serviço valida o token sozinho, sem consultar o serviço de login |
+| Autenticação | JWT (HS256) | Cada API valida o token sozinha, sem consultar a API de login |
 | Servidor | Nginx + systemd + Let's Encrypt | HTTPS é obrigatório para o Service Worker funcionar |
 | Documentação | OpenAPI 3 + Swagger UI, Postman | Exigência do trabalho |
 | Testes | `node:test`, pytest, `go test`, Playwright | Ferramenta padrão de cada linguagem e um navegador real para o offline |
 
-## Por que três serviços e essa divisão
+## Por que três APIs e essa divisão
 
-A divisão segue **quem é dono de cada dado**:
+A divisão segue a organização definida pelo professor, e cada API é **dona** dos dados do seu assunto:
 
-1. **Cadastros (Node)**: dados de apoio e identidade, que mudam pouco: profissionais, pessoas, prontuários e medicamentos. Também emite o token, porque é o único que lê `senha_hash`.
-2. **Atendimentos (Python)**: o registro clínico do atendimento e tudo que deriva dele: medicamentos administrados, ficha PDF e e-mail.
-3. **Sincronização (Go)**: não é dono de nenhum dado clínico. Recebe a fila do app, garante que cada operação seja aplicada uma única vez, decide os conflitos e encaminha a gravação ao dono.
+1. **API 1 – Autenticação, logs e documentos (Python):** login e emissão do token, profissionais, registro e consulta dos logs, ficha em PDF e envio por e-mail. É a única que lê `senha_hash`.
+2. **API 2 – Prontuários e sincronização (Go):** cadastro e consulta de prontuários. Também recebe a fila do app (push), garante que cada operação seja aplicada uma única vez, decide os conflitos e devolve as novidades (pull).
+3. **API 3 – Pessoas, medicamentos e atendimentos (Node):** cadastro de pessoas, catálogo de medicamentos e o registro clínico do atendimento, com os medicamentos administrados.
 
 ### Propriedade dos dados
 
 | Tabela | Quem grava | Quem só lê |
 |---|---|---|
-| profissional, paciente, prontuario, medicamento | cadastros | atendimentos, sync |
-| atendimento, medicamento_administrado | atendimentos | sync |
-| sync_operacao | sync | – |
-| log_acesso | cada serviço insere as próprias linhas | cadastros (tela de auditoria) |
+| profissional | API 1 | API 2 e API 3 (sem `senha_hash`) |
+| prontuario | API 2 | API 1 (ficha) e API 3 (confere o prontuário do atendimento) |
+| sync_operacao | API 2 | – |
+| paciente, medicamento, atendimento, medicamento_administrado | API 3 | API 1 (ficha) e API 2 (pull) |
+| log_acesso | cada API insere as próprias linhas | API 1 (tela de auditoria) |
 
-Essa regra é garantida **pelo banco**, não só pelo código ([banco/002_permissoes.sql](../banco/002_permissoes.sql)). O usuário `mf_sync` não tem permissão de `INSERT` em `paciente`. Por isso o serviço Go é obrigado a chamar a API do serviço de cadastros para gravar uma pessoa vinda do app.
+Essa regra é garantida **pelo banco**, não só pelo código ([banco/002_permissoes.sql](../banco/002_permissoes.sql)). O usuário `mf_api2` não tem permissão de `INSERT` em `paciente`. Por isso a API 2 é obrigada a chamar a API 3 para gravar uma pessoa vinda do app.
 
-## Como os serviços se comunicam
+## Como as APIs se comunicam
 
-- **Navegador → serviços:** sempre por HTTPS através do Nginx, que escolhe o serviço pelo caminho da URL. O navegador enxerga um único endereço.
-- **Sync → cadastros/atendimentos:** HTTP interno (`127.0.0.1`), com `PUT /api/pessoa/{id}`, `PUT /api/prontuario/{id}` e `PUT /api/atendimento/{id}`. O Go repassa o **token do próprio profissional**. Assim o serviço dono valida a permissão e registra no log quem fez a operação.
-- **Autenticação entre serviços:** não existe "token de serviço". Os três conhecem o `JWT_SEGREDO` e validam a assinatura localmente.
+- **Navegador → APIs:** sempre por HTTPS através do Nginx, que escolhe a API pelo caminho da URL. O navegador enxerga um único endereço.
+- **API 2 → API 3 (sincronização):** HTTP interno (`127.0.0.1`), com `PUT /api/pessoa/{id}` e `PUT /api/atendimento/{id}`. A API 2 repassa o **token do próprio profissional**. Assim a API 3 valida a permissão e registra no log quem fez a operação. O prontuário é da API 2 e é gravado por ela mesma.
+- **API 1 → banco (documentos):** para montar a ficha em PDF, a API 1 lê o atendimento, a pessoa e o prontuário direto no banco, só com permissão de leitura.
+- **Autenticação entre APIs:** não existe "token de serviço". As três conhecem o `JWT_SEGREDO` e validam a assinatura localmente.
 
 ## Autenticação
 
 1. `POST /api/auth/login` recebe o tipo de registro (CRM, COREN ou SOCORRISTA), o número e a senha.
-2. O serviço de cadastros compara a senha com o hash **bcrypt** e devolve um JWT válido por 8 horas, com `sub` (id do profissional), `nome` e `perfil`.
-3. Todas as outras rotas exigem `Authorization: Bearer <token>`. Cada serviço tem um middleware que valida o token.
+2. A API 1 compara a senha com o hash **bcrypt** e devolve um JWT válido por 8 horas, com `sub` (id do profissional), `nome` e `perfil`.
+3. Todas as outras rotas exigem `Authorization: Bearer <token>`. Cada API tem um middleware que valida o token.
 4. **Perfis de acesso:**
    - `admin`: faz tudo, inclusive excluir registros, cadastrar medicamentos e profissionais e ver a auditoria;
    - demais perfis: cadastram e editam pessoas, prontuários e atendimentos.
@@ -118,9 +119,9 @@ Essa regra é garantida **pelo banco**, não só pelo código ([banco/002_permis
 
 ## Auditoria (logs de acesso)
 
-Cada serviço tem um middleware que registra, ao final de toda requisição:
+Cada API tem um middleware que registra, ao final de toda requisição:
 - data e hora;
-- serviço;
+- API (`api1`, `api2`, `api3`);
 - IP do cliente (repassado pelo Nginx);
 - id do profissional;
 - método;
@@ -128,15 +129,15 @@ Cada serviço tem um middleware que registra, ao final de toda requisição:
 - status;
 - duração em milissegundos.
 
-| Serviço | Onde está o middleware |
+| API | Onde está o middleware |
 |---|---|
-| Node | [src/log.js](../servicos/cadastros-node/src/log.js) |
-| Python | [app/logs.py](../servicos/atendimentos-python/app/logs.py) |
-| Go | [logs.go](../servicos/sync-go/logs.go) |
+| API 3 (Node) | [src/log.js](../servicos/api3-atendimentos-node/src/log.js) |
+| API 1 (Python) | [app/logs.py](../servicos/api1-autenticacao-python/app/logs.py) |
+| API 2 (Go) | [logs.go](../servicos/api2-prontuarios-go/logs.go) |
 
 Os registros vão para a tabela `log_acesso` e também para o journal do systemd. A query string não é registrada, para não guardar dados clínicos usados em buscas. Senhas e tokens também nunca entram no log.
 
-O app grava localmente as operações feitas (inclusive logins offline) e envia esse histórico em `POST /api/log` na sincronização (`origem = 'cliente'`).
+O app grava localmente as operações feitas (inclusive logins offline) e envia esse histórico para a API 1, em `POST /api/log`, na sincronização (`origem = 'cliente'`).
 
 ## Decisões e limitações conhecidas
 

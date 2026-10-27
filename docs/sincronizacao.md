@@ -43,12 +43,12 @@ O indicador mostra três estados:
 3. Ao sincronizar ([outbox.js](../web/socorrista/outbox.js)):
    - o app soma 1 em `tentativas` antes de enviar;
    - depois manda a fila inteira, na ordem em que foi feita (pessoa, depois prontuário, depois atendimento), para `POST /api/sync/push`.
-4. O serviço Go ([push.go](../servicos/sync-go/push.go)) processa cada operação:
+4. A API 2, em Go ([push.go](../servicos/api2-prontuarios-go/push.go)) processa cada operação:
    1. Se o `op_id` já está em `sync_operacao` (e não deu erro), responde `duplicada` sem gravar nada (**idempotência**).
    2. Lê a versão atual do registro no banco (só leitura).
    3. Se o registro não existe, ou se a versão é igual à `versao_base`, encaminha a operação.
    4. Se a versão é diferente, há um **conflito**: a estratégia da entidade decide quem vence.
-   5. Encaminha com `PUT` para o serviço dono, com o token do profissional. O dono grava com `versao_base`; se alguém alterou o registro nesse meio-tempo, o dono responde 409, que vira `conflito`.
+   5. Grava na API dona: o prontuário a própria API 2 grava; pessoa e atendimento vão por `PUT` para a API 3, com o token do profissional. A gravação usa `versao_base`; se alguém alterou o registro nesse meio-tempo, o dono responde 409, que vira `conflito`.
    6. Registra o resultado em `sync_operacao` (rastreabilidade) e devolve o registro como ficou no servidor.
 5. O app trata cada resultado:
 
@@ -61,7 +61,7 @@ O indicador mostra três estados:
 ## Servidor → cliente (pull)
 
 1. O app chama `GET /api/sync/pull?desde=<cursor>`, onde o cursor é o último valor recebido (0 na primeira vez).
-2. O Go ([pull.go](../servicos/sync-go/pull.go)) abre uma transação `REPEATABLE READ` somente leitura e devolve todos os registros com `seq_alteracao > cursor`. A resposta inclui registros excluídos, e cobre pacientes, prontuários, atendimentos (com medicamentos), medicamentos e profissionais (só dados públicos).
+2. O Go ([pull.go](../servicos/api2-prontuarios-go/pull.go)) abre uma transação `REPEATABLE READ` somente leitura e devolve todos os registros com `seq_alteracao > cursor`. A resposta inclui registros excluídos, e cobre pacientes, prontuários, atendimentos (com medicamentos), medicamentos e profissionais (só dados públicos).
 3. O novo cursor é o maior `seq_alteracao` dessa mesma fotografia do banco.
 4. O app grava tudo no IndexedDB, menos os registros que ainda têm operação pendente na fila: a alteração local prevalece até ser enviada.
 
@@ -84,7 +84,7 @@ Um conflito acontece quando o dispositivo edita um registro a partir da versão 
 | paciente, prontuário | **Última escrita vence** | Compara `alterado_no_cliente_em` do dispositivo com a do servidor e fica a mais recente |
 | atendimento | **Servidor vence** | O registro clínico consolidado não é sobrescrito sem revisão. A versão do dispositivo fica guardada em `sync_operacao.payload_cliente` |
 
-As estratégias estão em [conflitos.go](../servicos/sync-go/conflitos.go) (padrão Strategy). Os dois casos são testados em `testes/integracao.test.js`.
+As estratégias estão em [conflitos.go](../servicos/api2-prontuarios-go/conflitos.go) (padrão Strategy). Os dois casos são testados em `testes/integracao.test.js`.
 
 Um registro **excluído** no servidor sempre vence: a alteração do dispositivo vira conflito.
 
@@ -100,5 +100,5 @@ Um registro **excluído** no servidor sempre vence: a alteração do dispositivo
 | Onde | O que fica registrado |
 |---|---|
 | `sync_operacao` (servidor) | Quem enviou (profissional e dispositivo), o que, quando, resultado, mensagem e as duas versões em caso de conflito. Visível no portal em **Sincronizações** |
-| `log_acesso` | Cada chamada HTTP dos três serviços e as operações locais do app (`origem = 'cliente'`). Visível no portal em **Auditoria** |
+| `log_acesso` | Cada chamada HTTP das três APIs e as operações locais do app (`origem = 'cliente'`). Visível no portal em **Auditoria** |
 | `historico_sync` (IndexedDB) | O resultado de cada operação enviada pelo dispositivo. Visível no app em **Sincronização** |

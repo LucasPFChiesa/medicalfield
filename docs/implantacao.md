@@ -40,7 +40,7 @@ banco/criar_banco.sh                               # banco medicalfield + usuár
 banco/criar_banco.sh medicalfield_teste            # banco usado pelos testes automáticos
 ```
 
-O PostgreSQL só aceita conexões locais (configuração padrão). Cada serviço usa o próprio usuário (`mf_cadastros`, `mf_atendimentos`, `mf_sync`) com senha.
+O PostgreSQL só aceita conexões locais (configuração padrão). Cada serviço usa o próprio usuário (`mf_api3`, `mf_api1`, `mf_api2`) com senha.
 
 ## 4. Serviços e Nginx
 
@@ -58,9 +58,9 @@ O script [instalar.sh](../implantacao/instalar.sh) pode ser executado de novo a 
 
 | Unidade | Executa | Porta |
 |---|---|---|
-| `medicalfield-cadastros` | `node src/servidor.js` | 127.0.0.1:3001 |
-| `medicalfield-atendimentos` | `.venv/bin/uvicorn app.main:app` | 127.0.0.1:8001 |
-| `medicalfield-sync` | binário `sync-go` | 127.0.0.1:8002 |
+| `medicalfield-api3` | `node src/servidor.js` | 127.0.0.1:3001 |
+| `medicalfield-api1` | `.venv/bin/uvicorn app.main:app` | 127.0.0.1:8001 |
+| `medicalfield-api2` | binário `api2` | 127.0.0.1:8002 |
 
 ## 5. HTTPS
 
@@ -94,9 +94,9 @@ O endereço da plataforma central está em `web/socorrista/config.js`. Na VM, o 
 ## Operação
 
 ```bash
-systemctl status medicalfield-cadastros medicalfield-atendimentos medicalfield-sync
-journalctl -u medicalfield-sync -f               # logs de acesso em tempo real
-sudo systemctl restart medicalfield-atendimentos
+systemctl status medicalfield-api3 medicalfield-api1 medicalfield-api2
+journalctl -u medicalfield-api2 -f               # logs de acesso em tempo real
+sudo systemctl restart medicalfield-api1
 sudo nginx -t && sudo systemctl reload nginx
 ```
 

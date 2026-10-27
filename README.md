@@ -26,9 +26,9 @@ Os dois são executados no seu computador, na pasta do projeto:
 |---|---|---|
 | App do socorrista | HTML, CSS, JavaScript, Service Worker, IndexedDB | Operação offline, fila de envio, simulador de conectividade |
 | Portal administrativo | HTML, CSS, JavaScript | Consulta e CRUD dos dados centrais, auditoria |
-| Serviço de cadastros | Node.js + Express | Login (JWT), pessoas, prontuários, medicamentos, profissionais |
-| Serviço de atendimentos | Python + FastAPI | Atendimentos, ficha em PDF, envio por e-mail |
-| Serviço de sincronização | Go (biblioteca padrão + pgx) | Push/pull, idempotência, conflitos, logs do app offline |
+| API 1 – Autenticação, logs e documentos | Python + FastAPI | Login (JWT), profissionais, logs e auditoria, ficha em PDF, envio por e-mail |
+| API 2 – Prontuários | Go (biblioteca padrão + pgx) | Prontuários e sincronização do app (push/pull, idempotência, conflitos) |
+| API 3 – Pessoas, medicamentos e atendimentos | Node.js + Express | Pessoas, catálogo de medicamentos e atendimentos |
 | Banco central | PostgreSQL 18 | Dados consolidados e auditoria |
 | Servidor | Ubuntu 26.04 (VM Univates), Nginx, systemd, Let's Encrypt | Hospedagem, HTTPS e proxy reverso |
 
@@ -39,14 +39,14 @@ Detalhes em [docs/arquitetura.md](docs/arquitetura.md).
 ```
 banco/                  scripts SQL (estrutura, permissões, dados fictícios) e criar_banco.sh
 servicos/
-  cadastros-node/       serviço Node.js (src/, test/, openapi.json)
-  atendimentos-python/  serviço Python (app/, tests/)
-  sync-go/              serviço Go (*.go, *_test.go, openapi.json)
+  api1-autenticacao-python/ API 1, Python: autenticação, logs, PDF e e-mail (app/, tests/)
+  api2-prontuarios-go/      API 2, Go: prontuários e sincronização (*.go, *_test.go, openapi.json)
+  api3-atendimentos-node/   API 3, Node.js: pessoas, medicamentos e atendimentos (src/, test/, openapi.json)
 web/
   comum/                CSS e módulos JS usados pelo portal e pelo app
   portal/               portal administrativo
   socorrista/           app do socorrista (PWA)
-  docs/                 Swagger UI dos três serviços
+  docs/                 Swagger UI das três APIs
 implantacao/            systemd, Nginx e script de instalação na VM
 testes/                 integração dos serviços, roteiro de 17 passos no navegador (Playwright)
 postman/                coleção com todas as rotas
@@ -76,7 +76,7 @@ cp .env.exemplo .env
 | Variável | Uso |
 
 |---|---|
-| `DB_SENHA_CADASTROS`, `DB_SENHA_ATENDIMENTOS`, `DB_SENHA_SYNC` | Senha do usuário de banco de cada serviço |
+| `DB_SENHA_API3`, `DB_SENHA_API1`, `DB_SENHA_API2` | Senha do usuário de banco de cada serviço |
 | `SENHA_DEMO` | Senha dos profissionais fictícios criados pelo `003_seed.sql` |
 | `JWT_SEGREDO` | Segredo compartilhado para assinar e validar os tokens |
 | `SMTP_HOST`, `SMTP_PORTA`, `SMTP_USUARIO`, `SMTP_SENHA`, `SMTP_REMETENTE` | Envio da ficha por e-mail (no Gmail, use uma senha de app) |
@@ -102,10 +102,10 @@ Pré-requisitos: Node.js 22, Python 3.12 ou superior, Go 1.25 ou superior e Post
 banco/criar_banco.sh                       # cria o banco medicalfield com dados fictícios
 set -a; source .env; set +a
 
-(cd servicos/cadastros-node && npm install && npm start) &
-(cd servicos/atendimentos-python && python3 -m venv .venv && .venv/bin/pip install -r requirements.txt \
+(cd servicos/api3-atendimentos-node && npm install && npm start) &
+(cd servicos/api1-autenticacao-python && python3 -m venv .venv && .venv/bin/pip install -r requirements.txt \
    && .venv/bin/uvicorn app.main:app --port 8001) &
-(cd servicos/sync-go && go run .) &
+(cd servicos/api2-prontuarios-go && go run .) &
 ```
 
 No navegador, as rotas `/api/...` precisam passar pelo Nginx, que direciona cada caminho ao serviço certo (ver [implantacao/nginx-medicalfield.conf](implantacao/nginx-medicalfield.conf)). Para desenvolvimento local, use a mesma configuração apontando `root` para a pasta `web/`.

@@ -82,11 +82,13 @@ Guarda `data_hora`, serviço, `origem` (servidor ou cliente), IP, `profissional_
 
 | Usuário do banco | Pode gravar | Pode ler |
 |---|---|---|
-| `mf_cadastros` | profissional, paciente, prontuario, medicamento (sem DELETE) | log_acesso |
-| `mf_atendimentos` | atendimento (sem DELETE), medicamento_administrado | paciente, prontuario, medicamento, profissional (sem `senha_hash`) |
-| `mf_sync` | sync_operacao | todas as clínicas, profissional (sem `senha_hash`) |
+| `mf_api1` (API 1, Python) | profissional (sem DELETE) | log_acesso e as tabelas clínicas (para a ficha em PDF) |
+| `mf_api2` (API 2, Go) | prontuario (sem DELETE), sync_operacao | paciente, medicamento, atendimento, medicamento_administrado, profissional (sem `senha_hash`) |
+| `mf_api3` (API 3, Node) | paciente, medicamento, atendimento (sem DELETE), medicamento_administrado | prontuario, profissional (sem `senha_hash`) |
 
 Todos podem inserir em `log_acesso`. Como nenhum usuário tem `DELETE` nas tabelas clínicas, a exclusão lógica é garantida pelo banco.
+
+Na reorganização das APIs, os usuários antigos (`mf_atendimentos`, `mf_sync`, `mf_cadastros`) foram renomeados para `mf_api1`, `mf_api2` e `mf_api3` com [004_renomear_usuarios.sql](../banco/004_renomear_usuarios.sql), sem apagar dados nem trocar senhas. Para atualizar um banco existente: `banco/criar_banco.sh --permissoes`.
 
 ## Banco local (IndexedDB, no navegador)
 

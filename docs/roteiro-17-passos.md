@@ -50,7 +50,7 @@ O trigger `controlar_versao` dá ao registro um `seq_alteracao` novo. Por isso e
   3. Volte para ONLINE.
 
   O histórico mostra a mensagem da estratégia "última escrita vence". No portal, **Sincronizações → Ver** compara as duas versões campo a campo.
-- **Auditoria:** portal > **Auditoria**, com filtro por serviço. Inclui as linhas `app-socorrista` com `origem = cliente`, enviadas pelo `POST /api/log`.
+- **Auditoria:** portal > **Auditoria**, com filtro por API. Inclui as linhas `app-socorrista` com `origem = cliente`, enviadas pelo `POST /api/log`.
 
 ## Execução automática
 
