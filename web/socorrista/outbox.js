@@ -100,13 +100,23 @@ async function enviarLogs() {
 }
 
 async function receberAlteracoes(resumo) {
-  const desde = (await db.lerMeta('cursor')) ?? 0;
-  const dados = await servidor.receberAlteracoes(desde);
+  let desde = (await db.lerMeta('cursor')) ?? 0;
+  let dados = await servidor.receberAlteracoes(desde);
+  // Cursor do servidor menor que o nosso: o banco central foi recriado.
+  // Descarta a cópia local e baixa tudo de novo.
+  const recomecar = dados.cursor < desde;
+  if (recomecar) {
+    desde = 0;
+    dados = await servidor.receberAlteracoes(0);
+  }
 
   await db.transacao([...LISTAS_DO_PULL, 'outbox', 'meta'], 'readwrite', async (tx) => {
     const pendentes = new Set((await db.promessa(tx.objectStore('outbox').getAll())).map((op) => op.entidade_id));
     for (const lista of LISTAS_DO_PULL) {
       const store = tx.objectStore(lista);
+      if (recomecar) {
+        for (const id of await db.promessa(store.getAllKeys())) if (!pendentes.has(id)) store.delete(id);
+      }
       for (const registro of dados[lista]) {
         // alteração local ainda não aceita pelo servidor não é sobrescrita
         if (pendentes.has(registro.id)) continue;

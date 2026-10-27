@@ -71,12 +71,12 @@ func pull(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var cursor int64
-	err = tx.QueryRow(r.Context(), `SELECT greatest($1::bigint,
+	err = tx.QueryRow(r.Context(), `SELECT greatest(
 		(SELECT coalesce(max(seq_alteracao), 0) FROM paciente),
 		(SELECT coalesce(max(seq_alteracao), 0) FROM prontuario),
 		(SELECT coalesce(max(seq_alteracao), 0) FROM medicamento),
 		(SELECT coalesce(max(seq_alteracao), 0) FROM atendimento),
-		(SELECT coalesce(max(seq_alteracao), 0) FROM profissional))`, desde).Scan(&cursor)
+		(SELECT coalesce(max(seq_alteracao), 0) FROM profissional))`).Scan(&cursor)
 	if err != nil {
 		responderErro(w, http.StatusInternalServerError, "Erro ao calcular o cursor")
 		return
