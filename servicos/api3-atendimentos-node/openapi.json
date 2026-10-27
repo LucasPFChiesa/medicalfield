@@ -1,0 +1,178 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "MedicalField - API 3: Pessoas, medicamentos e atendimentos (Node.js)",
+    "version": "1.0.0",
+    "description": "Pessoas (pacientes), catálogo de medicamentos e atendimentos (sinais vitais, Glasgow, Manchester, START e medicamentos administrados). O token é emitido pela API 1 (POST /api/auth/login). Todas as rotas exigem o cabeçalho Authorization: Bearer <token>."
+  },
+  "servers": [{ "url": "/" }],
+  "security": [{ "bearer": [] }],
+  "tags": [{ "name": "Pessoas" }, { "name": "Medicamentos" }, { "name": "Atendimentos" }],
+  "paths": {
+    "/api/pessoa": {
+      "get": {
+        "tags": ["Pessoas"], "summary": "Lista pessoas (pacientes) não excluídas",
+        "parameters": [{ "$ref": "#/components/parameters/Busca" }],
+        "responses": { "200": { "description": "Lista", "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Pessoa" } } } } } }
+      },
+      "post": {
+        "tags": ["Pessoas"], "summary": "Cadastra nova pessoa",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PessoaEntrada" } } } },
+        "responses": { "201": { "description": "Criada" }, "400": { "$ref": "#/components/responses/Invalido" }, "409": { "description": "Id ou CPF já cadastrado" } }
+      }
+    },
+    "/api/pessoa/{id}": {
+      "parameters": [{ "$ref": "#/components/parameters/Id" }],
+      "get": { "tags": ["Pessoas"], "summary": "Obtém uma pessoa", "responses": { "200": { "description": "Pessoa" }, "404": { "description": "Não encontrada" } } },
+      "put": {
+        "tags": ["Pessoas"], "summary": "Cria ou atualiza a pessoa (com controle de versão opcional)",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PessoaEntrada" } } } },
+        "responses": { "200": { "description": "Atualizada" }, "201": { "description": "Criada" }, "409": { "$ref": "#/components/responses/Conflito" } }
+      },
+      "delete": { "tags": ["Pessoas"], "summary": "Exclusão lógica (somente admin)", "responses": { "200": { "description": "Excluída" }, "403": { "$ref": "#/components/responses/SemPermissao" } } }
+    },
+    "/api/medicamento": {
+      "get": {
+        "tags": ["Medicamentos"], "summary": "Obtém todos os medicamentos",
+        "parameters": [{ "$ref": "#/components/parameters/Busca" }],
+        "responses": { "200": { "description": "Lista", "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Medicamento" } } } } } }
+      },
+      "post": {
+        "tags": ["Medicamentos"], "summary": "Cadastra medicamento (somente admin)",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/MedicamentoEntrada" } } } },
+        "responses": { "201": { "description": "Criado" }, "403": { "$ref": "#/components/responses/SemPermissao" } }
+      }
+    },
+    "/api/medicamento/{id}": {
+      "parameters": [{ "$ref": "#/components/parameters/Id" }],
+      "get": { "tags": ["Medicamentos"], "summary": "Obtém um medicamento", "responses": { "200": { "description": "Medicamento" }, "404": { "description": "Não encontrado" } } },
+      "put": {
+        "tags": ["Medicamentos"], "summary": "Atualiza medicamento (somente admin)",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/MedicamentoEntrada" } } } },
+        "responses": { "200": { "description": "Atualizado" }, "409": { "$ref": "#/components/responses/Conflito" } }
+      },
+      "delete": { "tags": ["Medicamentos"], "summary": "Exclusão lógica (somente admin)", "responses": { "200": { "description": "Excluído" } } }
+    },
+    "/api/atendimento": {
+      "get": {
+        "tags": ["Atendimentos"], "summary": "Lista os atendimentos (opcionalmente de uma pessoa)",
+        "parameters": [{ "name": "paciente_id", "in": "query", "schema": { "type": "string", "format": "uuid" } }],
+        "responses": { "200": { "description": "Lista", "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Atendimento" } } } } } }
+      },
+      "post": {
+        "tags": ["Atendimentos"], "summary": "Cadastra um atendimento",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AtendimentoEntrada" } } } },
+        "responses": { "201": { "description": "Criado" }, "400": { "$ref": "#/components/responses/Invalido" }, "409": { "description": "Já existe atendimento com este id" } }
+      }
+    },
+    "/api/atendimento/{id}": {
+      "parameters": [{ "$ref": "#/components/parameters/Id" }],
+      "get": { "tags": ["Atendimentos"], "summary": "Obtém um atendimento por id, com os medicamentos administrados", "responses": { "200": { "description": "Atendimento" }, "404": { "description": "Não encontrado" } } },
+      "put": {
+        "tags": ["Atendimentos"], "summary": "Cria ou atualiza o atendimento (com controle de versão opcional)",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AtendimentoEntrada" } } } },
+        "responses": { "200": { "description": "Atualizado" }, "201": { "description": "Criado" }, "409": { "$ref": "#/components/responses/Conflito" } }
+      },
+      "delete": { "tags": ["Atendimentos"], "summary": "Exclusão lógica (somente admin)", "responses": { "200": { "description": "Excluído" }, "403": { "$ref": "#/components/responses/SemPermissao" } } }
+    }
+  },
+  "components": {
+    "securitySchemes": { "bearer": { "type": "http", "scheme": "bearer", "bearerFormat": "JWT" } },
+    "parameters": {
+      "Id": { "name": "id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } },
+      "Busca": { "name": "busca", "in": "query", "description": "Filtro por texto", "schema": { "type": "string" } }
+    },
+    "responses": {
+      "Invalido": { "description": "Dados inválidos", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Erro" } } } },
+      "NaoAutenticado": { "description": "Token ausente, inválido ou expirado" },
+      "SemPermissao": { "description": "Perfil sem permissão" },
+      "Conflito": { "description": "versao_base diferente da versão atual; o registro atual é devolvido em 'atual'" }
+    },
+    "schemas": {
+      "Erro": { "type": "object", "properties": { "erro": { "type": "string" }, "detalhes": { "type": "array", "items": { "type": "string" } } } },
+      "MedicamentoAdministrado": {
+        "type": "object", "required": ["medicamento_id", "dose", "unidade", "horario"],
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "medicamento_id": { "type": "string", "format": "uuid" },
+          "dose": { "type": "number", "exclusiveMinimum": 0 },
+          "unidade": { "type": "string", "maxLength": 20, "example": "mg" },
+          "via": { "type": "string", "example": "IV" },
+          "horario": { "type": "string", "format": "date-time" }
+        }
+      },
+      "AtendimentoEntrada": {
+        "type": "object", "required": ["paciente_id", "data_hora", "tipo_ocorrencia", "descricao"],
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "paciente_id": { "type": "string", "format": "uuid" },
+          "prontuario_id": { "type": "string", "format": "uuid", "description": "Se ausente, usa o prontuário ativo do paciente" },
+          "profissional_id": { "type": "string", "format": "uuid", "description": "Se ausente, o profissional do token" },
+          "data_hora": { "type": "string", "format": "date-time" },
+          "tipo_ocorrencia": { "type": "string", "enum": ["clinica", "trauma", "acidente_transito", "queda", "obstetrica", "psiquiatrica", "outra"] },
+          "local": { "type": "string" },
+          "descricao": { "type": "string", "minLength": 3 },
+          "pa_sistolica": { "type": "integer", "minimum": 0, "maximum": 300 },
+          "pa_diastolica": { "type": "integer", "minimum": 0, "maximum": 250 },
+          "fc": { "type": "integer", "minimum": 0, "maximum": 300 },
+          "fr": { "type": "integer", "minimum": 0, "maximum": 100 },
+          "spo2": { "type": "integer", "minimum": 0, "maximum": 100 },
+          "temperatura": { "type": "number", "minimum": 25, "maximum": 45 },
+          "glicemia": { "type": "integer", "minimum": 0, "maximum": 1000 },
+          "glasgow_ocular": { "type": "integer", "minimum": 1, "maximum": 4 },
+          "glasgow_verbal": { "type": "integer", "minimum": 1, "maximum": 5 },
+          "glasgow_motora": { "type": "integer", "minimum": 1, "maximum": 6 },
+          "manchester": { "type": "string", "enum": ["vermelho", "laranja", "amarelo", "verde", "azul"] },
+          "start": { "type": "string", "enum": ["vermelho", "amarelo", "verde", "preto"] },
+          "medicamentos": { "type": "array", "items": { "$ref": "#/components/schemas/MedicamentoAdministrado" } },
+          "versao_base": { "type": "integer" }
+        }
+      },
+      "Atendimento": {
+        "allOf": [{ "$ref": "#/components/schemas/AtendimentoEntrada" }, { "$ref": "#/components/schemas/Controle" },
+          { "type": "object", "properties": { "glasgow_total": { "type": "integer" }, "paciente_nome": { "type": "string" }, "profissional_nome": { "type": "string" } } }]
+      },
+      "Controle": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "versao": { "type": "integer" },
+          "seq_alteracao": { "type": "integer" },
+          "criado_em": { "type": "string", "format": "date-time" },
+          "atualizado_em": { "type": "string", "format": "date-time" },
+          "excluido_em": { "type": "string", "format": "date-time", "nullable": true }
+        }
+      },
+      "PessoaEntrada": {
+        "type": "object", "required": ["nome"],
+        "properties": {
+          "id": { "type": "string", "format": "uuid", "description": "Opcional no POST; gerado pelo cliente para permitir reenvio sem duplicar" },
+          "nome": { "type": "string", "example": "Maria da Silva" },
+          "cpf": { "type": "string", "example": "12345678901" },
+          "data_nascimento": { "type": "string", "format": "date" },
+          "sexo": { "type": "string", "enum": ["M", "F", "O"] },
+          "telefone": { "type": "string" },
+          "email": { "type": "string" },
+          "contato_emergencia_nome": { "type": "string" },
+          "contato_emergencia_telefone": { "type": "string" },
+          "versao_base": { "type": "integer", "description": "Versão lida pelo cliente (PUT)" },
+          "alterado_no_cliente_em": { "type": "string", "format": "date-time" }
+        }
+      },
+      "Pessoa": { "allOf": [{ "$ref": "#/components/schemas/PessoaEntrada" }, { "$ref": "#/components/schemas/Controle" }] },
+      "MedicamentoEntrada": {
+        "type": "object", "required": ["nome"],
+        "properties": {
+          "nome": { "type": "string", "example": "Dipirona sódica" },
+          "principio_ativo": { "type": "string" },
+          "apresentacao": { "type": "string" },
+          "concentracao": { "type": "string" },
+          "via_padrao": { "type": "string" },
+          "alerta": { "type": "string" },
+          "versao_base": { "type": "integer" }
+        }
+      },
+      "Medicamento": { "allOf": [{ "$ref": "#/components/schemas/MedicamentoEntrada" }, { "$ref": "#/components/schemas/Controle" }] }
+    }
+  }
+}

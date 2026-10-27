@@ -15,7 +15,7 @@ export function registrarAcesso(req, res, next) {
 
     pool.query(
       `INSERT INTO log_acesso (servico, ip, profissional_id, metodo, rota, status, duracao_ms)
-       VALUES ('cadastros', $1, $2, $3, $4, $5, $6)`,
+       VALUES ('api3', $1, $2, $3, $4, $5, $6)`,
       [req.ip, profissionalId, req.method, rota, res.statusCode, duracaoMs.toFixed(2)],
     ).catch((erro) => console.error('Falha ao gravar log de acesso:', erro.message));
   });

@@ -64,7 +64,7 @@ export function rotasCrud({ repo, validar, perfisEscrita, buscarUm = (id) => rep
 }
 
 // Campos vazios de formulário viram null e a data da alteração é registrada.
-function prepararDados(corpo) {
+export function prepararDados(corpo) {
   const dados = { ...(corpo ?? {}) };
   for (const [campo, valor] of Object.entries(dados)) {
     if (typeof valor === 'string') dados[campo] = valor.trim() === '' ? null : valor.trim();
