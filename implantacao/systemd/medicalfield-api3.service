@@ -1,12 +1,12 @@
 [Unit]
-Description=MedicalField - cadastros e autenticação (Node.js)
+Description=MedicalField - API 3: pessoas, medicamentos e atendimentos (Node.js)
 After=network.target postgresql.service
 Wants=postgresql.service
 
 [Service]
 User=univates
 Group=univates
-WorkingDirectory=/opt/medicalfield/servicos/cadastros-node
+WorkingDirectory=/opt/medicalfield/servicos/api3-atendimentos-node
 EnvironmentFile=/etc/medicalfield/medicalfield.env
 ExecStart=/usr/bin/node src/servidor.js
 Restart=on-failure

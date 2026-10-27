@@ -1,0 +1,19 @@
+[Unit]
+Description=MedicalField - API 2: prontuários e sincronização (Go)
+After=network.target postgresql.service medicalfield-api3.service
+Wants=postgresql.service
+
+[Service]
+User=univates
+Group=univates
+WorkingDirectory=/opt/medicalfield/servicos/api2-prontuarios-go
+EnvironmentFile=/etc/medicalfield/medicalfield.env
+ExecStart=/opt/medicalfield/servicos/api2-prontuarios-go/api2
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=true
+ProtectSystem=full
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

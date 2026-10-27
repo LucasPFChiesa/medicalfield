@@ -1,0 +1,19 @@
+[Unit]
+Description=MedicalField - API 1: autenticação, logs e documentos (Python/FastAPI)
+After=network.target postgresql.service
+Wants=postgresql.service
+
+[Service]
+User=univates
+Group=univates
+WorkingDirectory=/opt/medicalfield/servicos/api1-autenticacao-python
+EnvironmentFile=/etc/medicalfield/medicalfield.env
+ExecStart=/opt/medicalfield/servicos/api1-autenticacao-python/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8001 --proxy-headers --forwarded-allow-ips 127.0.0.1 --no-access-log
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=true
+ProtectSystem=full
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

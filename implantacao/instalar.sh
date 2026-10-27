@@ -14,19 +14,26 @@ echo "== Variáveis de ambiente (/etc/medicalfield/medicalfield.env)"
 sudo install -d -m 750 -o root -g univates /etc/medicalfield
 sudo install -m 640 -o root -g univates "$raiz/.env" /etc/medicalfield/medicalfield.env
 
-echo "== Dependências do serviço Node"
-(cd servicos/cadastros-node && npm ci --omit=dev --no-audit --no-fund --loglevel=error)
+echo "== API 3 (Node): dependências"
+(cd servicos/api3-atendimentos-node && npm ci --omit=dev --no-audit --no-fund --loglevel=error)
 
-echo "== Dependências do serviço Python"
-(cd servicos/atendimentos-python && { test -d .venv || python3 -m venv .venv; } && .venv/bin/pip install -q -r requirements.txt)
+echo "== API 1 (Python): dependências"
+(cd servicos/api1-autenticacao-python && { test -d .venv || python3 -m venv .venv; } && .venv/bin/pip install -q -r requirements.txt)
 
-echo "== Compilação do serviço Go"
-(cd servicos/sync-go && go build -o sync-go .)
+echo "== API 2 (Go): compilação"
+(cd servicos/api2-prontuarios-go && go build -o api2 .)
 
 echo "== Serviços systemd"
-sudo cp implantacao/systemd/medicalfield-*.service /etc/systemd/system/
+# Serviços com os nomes antigos (antes da reorganização das APIs) são desligados e removidos.
+for antigo in cadastros atendimentos sync; do
+    if [[ -f /etc/systemd/system/medicalfield-$antigo.service ]]; then
+        sudo systemctl disable --now --quiet "medicalfield-$antigo" || true
+        sudo rm -f "/etc/systemd/system/medicalfield-$antigo.service"
+    fi
+done
+sudo cp implantacao/systemd/medicalfield-api*.service /etc/systemd/system/
 sudo systemctl daemon-reload
-for servico in cadastros atendimentos sync; do
+for servico in api3 api1 api2; do
     sudo systemctl enable --quiet "medicalfield-$servico"
     sudo systemctl restart "medicalfield-$servico"
 done
@@ -44,4 +51,4 @@ sudo nginx -t
 sudo systemctl reload nginx
 
 sleep 2
-systemctl --no-pager --lines=0 status medicalfield-cadastros medicalfield-atendimentos medicalfield-sync | grep -E '●|Active:'
+systemctl --no-pager --lines=0 status medicalfield-api1 medicalfield-api2 medicalfield-api3 | grep -E '●|Active:'

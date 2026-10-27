@@ -3,6 +3,6 @@ node_modules/
 .venv/
 __pycache__/
 *.pyc
-servicos/sync-go/sync-go
+servicos/api2-prontuarios-go/api2
 test-results/
 playwright-report/
