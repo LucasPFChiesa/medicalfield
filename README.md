@@ -89,10 +89,10 @@ Os demais profissionais fictícios também usam a senha `admin` (valor de `SENHA
 
 | Profissional | Tipo | Número | Perfil |
 |---|---|---|---|
-| Helena Vasconcelos | CRM | admin | admin |
-| Rafael Kunzler | CRM | 20002-RS | médico |
-| Juliana Schmitt | COREN | 300003-RS | enfermeiro |
-| Marcos Dalpiaz | SOCORRISTA | SOC-0042 | socorrista |
+| Lucas Chiesa | CRM | admin | admin |
+| Médico Teste | CRM | 20002-RS | médico |
+| Enfermeiro Teste | COREN | 300003-RS | enfermeiro |
+| Socorrista Teste | SOCORRISTA | SOC-0042 | socorrista |
 
 ## Executar localmente
 

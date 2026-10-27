@@ -39,7 +39,7 @@ test('roteiro de avaliação (17 passos)', async ({ browser }) => {
   await test.step('1. Portal: autenticar', async () => {
     await portal.goto('/portal/');
     await entrar(portal, 'CRM', 'admin');
-    await expect(portal.locator('#usuario')).toContainText('Helena Vasconcelos');
+    await expect(portal.locator('#usuario')).toContainText('Lucas Chiesa');
   });
 
   await test.step('2. Portal: listar cadastros', async () => {
@@ -65,7 +65,7 @@ test('roteiro de avaliação (17 passos)', async ({ browser }) => {
     await cliente.goto(CLIENTE + '/socorrista/');
     await cliente.click('[data-simular=online]');
     await entrar(cliente, 'SOCORRISTA', 'SOC-0042');
-    await expect(cliente.locator('#usuario')).toContainText('Marcos Dalpiaz');
+    await expect(cliente.locator('#usuario')).toContainText('Socorrista Teste');
   });
 
   await test.step('6. Cliente: sincronizar dados a partir do portal', async () => {
@@ -229,7 +229,7 @@ test('sem rede de verdade: app abre pelo Service Worker e aceita login offline',
   await pagina.goto(CLIENTE + '/socorrista/');
   await pagina.click('[data-simular=online]');
   await entrar(pagina, 'COREN', '300003-RS');
-  await expect(pagina.locator('#usuario')).toContainText('Juliana Schmitt');
+  await expect(pagina.locator('#usuario')).toContainText('Enfermeiro Teste');
   await expect(pagina.locator('#msg')).toContainText('Sincronização concluída');
   await pagina.evaluate(() => navigator.serviceWorker.ready);
   await pagina.click('#sair');

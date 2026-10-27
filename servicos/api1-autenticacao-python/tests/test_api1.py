@@ -34,7 +34,7 @@ def socorrista():
 
 def test_login_devolve_token_e_dados_publicos(socorrista):
     r = cliente.post("/api/auth/login", json={"tipo_registro": "SOCORRISTA", "numero_registro": "SOC-0042", "senha": SENHA})
-    assert r.json()["profissional"]["nome"] == "Marcos Dalpiaz"
+    assert r.json()["profissional"]["nome"] == "Socorrista Teste"
     assert "senha_hash" not in r.json()["profissional"]
     assert cliente.get("/api/auth/eu", headers=socorrista).json()["perfil"] == "socorrista"
 
@@ -117,7 +117,7 @@ def test_logs_do_app_e_auditoria(admin, socorrista):
     assert cliente.get("/api/auditoria", headers=socorrista).status_code == 403
     logs = cliente.get("/api/auditoria", params={"limite": 50}, headers=admin).json()
     doApp = next(l for l in logs if l["servico"] == "app-socorrista")
-    assert doApp["origem"] == "cliente" and doApp["profissional_nome"] == "Marcos Dalpiaz"
+    assert doApp["origem"] == "cliente" and doApp["profissional_nome"] == "Socorrista Teste"
 
 
 def test_middleware_grava_log_de_acesso(socorrista):

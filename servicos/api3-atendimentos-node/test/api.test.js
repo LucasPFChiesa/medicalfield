@@ -137,7 +137,7 @@ test('cria e consulta atendimento por id', async () => {
   assert.equal(criado.corpo.glasgow_total, 15);
   assert.equal(criado.corpo.temperatura, 36.5);
   assert.ok(criado.corpo.prontuario_id, 'deve usar o prontuário do paciente');
-  assert.equal(criado.corpo.profissional_nome, 'Marcos Dalpiaz');
+  assert.equal(criado.corpo.profissional_nome, 'Socorrista Teste');
   assert.equal(criado.corpo.medicamentos[0].medicamento_nome, 'Dipirona sódica');
 
   const porId = await chamar('GET', `/api/atendimento/${corpo.id}`, { token: tokenSocorrista });

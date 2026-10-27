@@ -12,11 +12,11 @@
 
 | # | Onde | Ação | Resultado esperado |
 |---|---|---|---|
-| 1 | Portal | Entrar com **CRM / admin / admin** (Helena, perfil admin) | Menu do portal com o nome no topo |
+| 1 | Portal | Entrar com **CRM / admin / admin** (Lucas Chiesa, perfil admin) | Menu do portal com o nome no topo |
 | 2 | Portal | Menu **Pacientes**, depois **Medicamentos** (e **Profissionais**) | 5 pacientes, 10 medicamentos, 4 profissionais |
 | 3 | Portal | Menu **Prontuários** | 5 prontuários com o nome do paciente |
 | 4 | Portal | Menu **Atendimentos** | 3 atendimentos de exemplo com triagem e Glasgow |
-| 5 | Cliente | Simulador em **ONLINE**; entrar com **CRM / admin / admin** (ou ID de socorrista **SOC-0042**, senha **admin**, para o atendimento sair em nome do socorrista Marcos) | Topo mostra "Online" e o nome |
+| 5 | Cliente | Simulador em **ONLINE**; entrar com **CRM / admin / admin** (ou ID de socorrista **SOC-0042**, senha **admin**, para o atendimento sair em nome do Socorrista Teste) | Topo mostra "Online" e o nome |
 | 6 | Cliente | No primeiro login a sincronização é automática (ou clique em **Sincronizar**) | Mensagem "Sincronização concluída: … registro(s) recebido(s)"; telas Pacientes e Medicamentos preenchidas |
 | 7 | Cliente | **Registrar atendimento**: escolher um paciente, tipo, descrição, sinais vitais, Glasgow, Manchester e um medicamento → **Salvar** | Mensagem "Sincronização concluída: 1 enviada(s)"; etiqueta **sincronizado** |
 | 8 | Portal | **Atendimentos** → **Atualizar** | Novo atendimento no topo da lista; **Ver** mostra os detalhes |

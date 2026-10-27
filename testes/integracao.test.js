@@ -99,7 +99,7 @@ test('push grava nos serviços donos e o reenvio não duplica', async () => {
   assert.equal((await chamar(API2, 'GET', `/api/prontuario/${pessoa.id}`, admin)).corpo.id, prontuario.id);
   const doPaciente = await chamar(API3, 'GET', `/api/atendimento?paciente_id=${pessoa.id}`, admin);
   assert.equal(doPaciente.corpo.length, 1);
-  assert.equal(doPaciente.corpo[0].profissional_nome, 'Marcos Dalpiaz');
+  assert.equal(doPaciente.corpo[0].profissional_nome, 'Socorrista Teste');
 
   // reenvio da mesma fila (ex.: a resposta se perdeu na rede)
   const segunda = await enviar(ops);
@@ -115,7 +115,7 @@ test('push grava nos serviços donos e o reenvio não duplica', async () => {
   const registrada = rastro.corpo.find((o) => o.op_id === ops[2].op_id);
   assert.equal(registrada.status, 'aplicada');
   assert.equal(registrada.dispositivo_id, DISPOSITIVO);
-  assert.equal(registrada.profissional_nome, 'Marcos Dalpiaz');
+  assert.equal(registrada.profissional_nome, 'Socorrista Teste');
 });
 
 test('conflito em paciente: última escrita vence', async () => {
@@ -218,7 +218,7 @@ test('logs offline do app e logs dos três serviços ficam na auditoria', async 
   }
   const doApp = auditoria.corpo.find((l) => l.servico === 'app-socorrista');
   assert.equal(doApp.origem, 'cliente');
-  assert.equal(doApp.profissional_nome, 'Marcos Dalpiaz');
+  assert.equal(doApp.profissional_nome, 'Socorrista Teste');
 
   const doSync = auditoria.corpo.find((l) => l.servico === 'api2' && l.rota === '/api/sync/push');
   assert.ok(doSync.profissional_id && doSync.ip && Number(doSync.duracao_ms) >= 0);

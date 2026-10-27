@@ -2,10 +2,10 @@
 -- Todos os profissionais usam a senha passada em :senha_demo.
 
 INSERT INTO profissional (nome, tipo_registro, numero_registro, senha_hash, perfil, email) VALUES
-    ('Helena Vasconcelos', 'CRM',        'admin',  crypt(:'senha_demo', gen_salt('bf', 10)), 'admin',      'helena.vasconcelos@exemplo.com'),
-    ('Rafael Kunzler',     'CRM',        '20002-RS',  crypt(:'senha_demo', gen_salt('bf', 10)), 'medico',     'rafael.kunzler@exemplo.com'),
-    ('Juliana Schmitt',    'COREN',      '300003-RS', crypt(:'senha_demo', gen_salt('bf', 10)), 'enfermeiro', 'juliana.schmitt@exemplo.com'),
-    ('Marcos Dalpiaz',     'SOCORRISTA', 'SOC-0042',  crypt(:'senha_demo', gen_salt('bf', 10)), 'socorrista', 'marcos.dalpiaz@exemplo.com');
+    ('Lucas Chiesa',     'CRM',        'admin',  crypt(:'senha_demo', gen_salt('bf', 10)), 'admin',      'lucas.chiesa@exemplo.com'),
+    ('Médico Teste',     'CRM',        '20002-RS',  crypt(:'senha_demo', gen_salt('bf', 10)), 'medico',     'medico.teste@exemplo.com'),
+    ('Enfermeiro Teste', 'COREN',      '300003-RS', crypt(:'senha_demo', gen_salt('bf', 10)), 'enfermeiro', 'enfermeiro.teste@exemplo.com'),
+    ('Socorrista Teste', 'SOCORRISTA', 'SOC-0042',  crypt(:'senha_demo', gen_salt('bf', 10)), 'socorrista', 'socorrista.teste@exemplo.com');
 
 INSERT INTO paciente (nome, cpf, data_nascimento, sexo, telefone, contato_emergencia_nome, contato_emergencia_telefone, criado_por) VALUES
     ('Ana Paula Ferreira',  '11122233344', '1985-03-12', 'F', '(51) 99811-2030', 'Carlos Ferreira',  '(51) 99811-2031', (SELECT id FROM profissional WHERE numero_registro = 'admin')),
