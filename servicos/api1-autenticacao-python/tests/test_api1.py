@@ -29,11 +29,11 @@ def admin():
 
 @pytest.fixture(scope="module")
 def socorrista():
-    return entrar("SOCORRISTA", "SOC-0042")
+    return entrar("SOCORRISTA", "socorrista")
 
 
 def test_login_devolve_token_e_dados_publicos(socorrista):
-    r = cliente.post("/api/auth/login", json={"tipo_registro": "SOCORRISTA", "numero_registro": "SOC-0042", "senha": SENHA})
+    r = cliente.post("/api/auth/login", json={"tipo_registro": "SOCORRISTA", "numero_registro": "socorrista", "senha": SENHA})
     assert r.json()["profissional"]["nome"] == "Socorrista Teste"
     assert "senha_hash" not in r.json()["profissional"]
     assert cliente.get("/api/auth/eu", headers=socorrista).json()["perfil"] == "socorrista"

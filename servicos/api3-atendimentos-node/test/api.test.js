@@ -57,7 +57,7 @@ before(async () => {
   servidor = app.listen(0);
   base = `http://127.0.0.1:${servidor.address().port}`;
   tokenAdmin = await tokenDe('admin');
-  tokenSocorrista = await tokenDe('SOC-0042');
+  tokenSocorrista = await tokenDe('socorrista');
   pacienteId = (await pool.query("SELECT id FROM paciente WHERE cpf = '11122233344'")).rows[0].id;
   medicamentoId = (await pool.query("SELECT id FROM medicamento WHERE nome = 'Dipirona sódica'")).rows[0].id;
 });
@@ -197,7 +197,7 @@ test('cada requisição gera log com profissional, status e duração', async ()
   await admin.connect();
   const { rows } = await admin.query(
     `SELECT l.* FROM log_acesso l JOIN profissional p ON p.id = l.profissional_id
-     WHERE l.servico = 'api3' AND l.rota = '/api/medicamento' AND p.numero_registro = 'SOC-0042'
+     WHERE l.servico = 'api3' AND l.rota = '/api/medicamento' AND p.numero_registro = 'socorrista'
      ORDER BY l.id DESC LIMIT 1`,
   );
   await admin.end();

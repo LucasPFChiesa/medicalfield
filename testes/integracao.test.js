@@ -54,7 +54,7 @@ function ocorrenciaOffline(medicamentoId) {
 }
 
 before(async () => {
-  socorrista = await entrar('SOCORRISTA', 'SOC-0042');
+  socorrista = await entrar('SOCORRISTA', 'socorrista');
   admin = await entrar('CRM', 'admin');
 });
 

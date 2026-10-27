@@ -63,7 +63,7 @@ test('roteiro de avaliação (17 passos)', async ({ browser }) => {
   await test.step('5. Cliente: autenticar', async () => {
     await cliente.goto(CLIENTE + '/socorrista/');
     await cliente.click('[data-simular=online]');
-    await entrar(cliente, 'SOCORRISTA', 'SOC-0042');
+    await entrar(cliente, 'SOCORRISTA', 'socorrista');
     await expect(cliente.locator('#usuario')).toContainText('Socorrista Teste');
   });
 
@@ -227,7 +227,7 @@ test('sem rede de verdade: app abre pelo Service Worker e aceita login offline',
   const pagina = await contexto.newPage();
   await pagina.goto(CLIENTE + '/socorrista/');
   await pagina.click('[data-simular=online]');
-  await entrar(pagina, 'COREN', '300003-RS');
+  await entrar(pagina, 'COREN', 'enfermeiro');
   await expect(pagina.locator('#usuario')).toContainText('Enfermeiro Teste');
   await expect(pagina.locator('#msg')).toContainText('Sincronização concluída');
   await pagina.evaluate(() => navigator.serviceWorker.ready);
@@ -238,7 +238,7 @@ test('sem rede de verdade: app abre pelo Service Worker e aceita login offline',
   await pagina.reload();
   // simulador continua em ONLINE, mas a rede real caiu
   await expect(pagina.locator('#indicador')).toHaveText('Sem rede');
-  await entrar(pagina, 'COREN', '300003-RS');
+  await entrar(pagina, 'COREN', 'enfermeiro');
   await expect(pagina.locator('#usuario')).toContainText('login offline');
   await pagina.goto(CLIENTE + '/socorrista/#pacientes');
   expect(await linhasDaTabela(pagina)).toBeGreaterThanOrEqual(5);
@@ -246,7 +246,7 @@ test('sem rede de verdade: app abre pelo Service Worker e aceita login offline',
   // senha errada continua bloqueada sem rede
   await pagina.click('#sair');
   await pagina.selectOption('#tipo_registro', 'COREN');
-  await pagina.fill('#numero_registro', '300003-RS');
+  await pagina.fill('#numero_registro', 'enfermeiro');
   await pagina.fill('#senha', 'senha-errada');
   await pagina.click('#form-login button[type=submit]');
   await expect(pagina.locator('#msg-login')).toContainText('incorretos');

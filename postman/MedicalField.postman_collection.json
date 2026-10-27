@@ -138,7 +138,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"tipo_registro\": \"SOCORRISTA\",\n  \"numero_registro\": \"SOC-0042\",\n  \"senha\": \"{{senha}}\"\n}"
+              "raw": "{\n  \"tipo_registro\": \"SOCORRISTA\",\n  \"numero_registro\": \"socorrista\",\n  \"senha\": \"{{senha}}\"\n}"
             }
           },
           "event": [

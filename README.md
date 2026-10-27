@@ -15,9 +15,9 @@ Login de teste: tipo **CRM**, número **admin**, senha **admin**.
 | Profissional | Tipo | Número | Perfil |
 |---|---|---|---|
 | Lucas Chiesa | CRM | admin | admin |
-| Médico Teste | CRM | 20002-RS | médico |
-| Enfermeiro Teste | COREN | 300003-RS | enfermeiro |
-| Socorrista Teste | SOCORRISTA | SOC-0042 | socorrista |
+| Médico Teste | CRM | medico | médico |
+| Enfermeiro Teste | COREN | enfermeiro | enfermeiro |
+| Socorrista Teste | SOCORRISTA | socorrista | socorrista |
 
 Todos usam a senha `admin`.
 
