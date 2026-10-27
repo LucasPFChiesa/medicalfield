@@ -89,7 +89,7 @@ const CADASTROS = {
       ['email', 'E-mail'], ['ativo', 'Situação', (v) => (v ? 'Ativo' : 'Inativo')]],
     campos: [
       { nome: 'nome', rotulo: 'Nome *', obrigatorio: true },
-      { nome: 'tipo_registro', rotulo: 'Tipo de registro *', obrigatorio: true, opcoes: { CRM: 'CRM', COREN: 'COREN', SOCORRISTA: 'ID de socorrista' } },
+      { nome: 'tipo_registro', rotulo: 'Tipo de registro *', obrigatorio: true, opcoes: { CRM: 'CRM (médico)', COREN: 'COREN (enfermeiro)', SOCORRISTA: 'ID de socorrista (socorrista)' } },
       { nome: 'numero_registro', rotulo: 'Número do registro *', obrigatorio: true },
       { nome: 'perfil', rotulo: 'Perfil *', obrigatorio: true, opcoes: PERFIS },
       { nome: 'email', rotulo: 'E-mail', tipo: 'email' },
