@@ -11,7 +11,7 @@
 # VM: cd /opt/medicalfield && banco/criar_banco.sh --recriar
 #
 # Os serviços já sobem sozinhos quando a VM liga; este comando só é preciso
-# depois de mudar o código. O app do socorrista é ligado com ./iniciar-local.sh
+# depois de mudar o código.
 set -euo pipefail
 
 VM_SSH="univates@177.44.248.50"

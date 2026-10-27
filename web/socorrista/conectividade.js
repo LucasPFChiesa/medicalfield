@@ -1,7 +1,6 @@
 // Observer: guarda o estado da conexão e avisa os interessados (indicador da
 // tela, envio automático da fila, etc.) sempre que ele muda.
 // Online = chave do simulador em ONLINE e servidor alcançável.
-import { SERVIDOR } from './config.js';
 
 const ouvintes = new Set();
 const INTERVALO_VERIFICACAO = 5000;
@@ -45,7 +44,7 @@ export function informarFalhaDeRede() {
 async function verificarServidor() {
   if (!simuladorOnline) return;
   try {
-    const resposta = await fetch(`${SERVIDOR}/api/ping`, { cache: 'no-store', signal: AbortSignal.timeout(4000) });
+    const resposta = await fetch('/api/ping', { cache: 'no-store', signal: AbortSignal.timeout(4000) });
     servidorAlcancavel = resposta.ok;
   } catch {
     servidorAlcancavel = false;

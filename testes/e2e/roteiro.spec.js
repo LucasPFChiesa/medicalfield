@@ -1,4 +1,4 @@
-// Roteiro oficial de 17 passos, executado no Chrome: portal na VM e app do socorrista local.
+// Roteiro oficial de 17 passos, executado no Chrome contra a VM (portal e app do socorrista).
 // O passo 9 insere o medicamento direto no PostgreSQL da VM via ssh + psql.
 import { test, expect } from '@playwright/test';
 import { execFileSync } from 'node:child_process';
@@ -7,8 +7,7 @@ import { readFileSync } from 'node:fs';
 const SENHA = process.env.SENHA_DEMO;
 const VM = process.env.VM_SSH ?? 'univates@177.44.248.50';
 const EMAIL = process.env.EMAIL_TESTE ?? 'lpfctest@gmail.com';
-// O app do socorrista roda no notebook; o portal e as APIs ficam na VM (baseURL).
-const CLIENTE = process.env.CLIENTE_URL ?? 'http://localhost:8080';
+const CLIENTE = process.env.BASE_URL ?? 'https://medicalfield.duckdns.org';
 const marca = Date.now().toString().slice(-6);
 
 async function entrar(pagina, tipo, numero) {
