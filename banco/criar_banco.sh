@@ -3,8 +3,7 @@
 # Uso: banco/criar_banco.sh [--recriar | --permissoes] [nome_do_banco]
 #   (sem opção)   cria um banco novo
 #   --recriar     apaga e cria de novo (volta aos dados de exemplo)
-#   --permissoes  só renomeia usuários antigos e reaplica as permissões,
-#                 sem apagar nenhum dado (usado na reorganização das APIs)
+#   --permissoes  só reaplica as permissões, sem apagar nenhum dado
 #   nome padrão: medicalfield (os testes automáticos usam medicalfield_teste)
 # Lê as senhas do arquivo indicado em ARQUIVO_ENV (padrão: .env na raiz).
 # Precisa ser executado por um usuário com permissão de administrador no PostgreSQL.
@@ -25,7 +24,6 @@ psql_admin=(psql -v ON_ERROR_STOP=1 -q -d postgres)
 psql_mf=(psql -v ON_ERROR_STOP=1 -q -d "$banco")
 
 aplicar_permissoes() {
-    "${psql_admin[@]}" -f "$raiz/banco/004_renomear_usuarios.sql"
     "${psql_mf[@]}" -f "$raiz/banco/002_permissoes.sql" \
         -v nome_banco="$banco" \
         -v senha_api1="$DB_SENHA_API1" \
