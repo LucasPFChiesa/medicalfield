@@ -91,9 +91,9 @@ test('roteiro de avaliação (17 passos)', async ({ browser }) => {
     await expect(form.locator('[data-glasgow-total]')).toHaveText('15');
     await form.locator('[name=manchester]').selectOption('amarelo');
     await form.locator('[data-adicionar-medicamento]').click();
-    await form.locator('[name=medicamento_id]').selectOption({ label: 'Salbutamol' });
-    await form.locator('[name=dose]').fill('400');
-    await form.locator('[name=unidade]').fill('mcg');
+    await form.locator('[name=medicamento_id]').last().selectOption({ label: 'Salbutamol' });
+    await form.locator('[name=dose]').last().fill('400');
+    await form.locator('[name=unidade]').last().fill('mcg');
     await form.locator('button[type=submit]').click();
     await expect(cliente.locator('#msg')).toContainText('Sincronização concluída');
     await expect(cliente.locator('h2 .etiqueta')).toHaveText('sincronizado');
@@ -160,11 +160,11 @@ test('roteiro de avaliação (17 passos)', async ({ browser }) => {
     await form.locator('[name=manchester]').selectOption('laranja');
     await form.locator('[name=start]').selectOption('amarelo');
     await form.locator('[data-adicionar-medicamento]').click();
-    await form.locator('[name=medicamento_id]').selectOption({ label: 'Dipirona sódica' });
-    await expect(form.locator('.alerta-medicamento')).toContainText('alergia a "dipirona"');
-    await form.locator('[name=medicamento_id]').selectOption({ label: 'Soro fisiológico 0,9%' });
-    await form.locator('[name=dose]').fill('500');
-    await form.locator('[name=unidade]').fill('mL');
+    await form.locator('[name=medicamento_id]').last().selectOption({ label: 'Dipirona sódica' });
+    await expect(form.locator('.alerta-medicamento').last()).toContainText('alergia a "dipirona"');
+    await form.locator('[name=medicamento_id]').last().selectOption({ label: 'Soro fisiológico 0,9%' });
+    await form.locator('[name=dose]').last().fill('500');
+    await form.locator('[name=unidade]').last().fill('mL');
     await form.locator('button[type=submit]').click();
     await expect(cliente.locator('#msg')).toContainText('Atendimento registrado. Guardado no dispositivo (offline)');
 

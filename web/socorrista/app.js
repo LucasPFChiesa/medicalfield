@@ -222,7 +222,7 @@ async function paginaNovoAtendimento(pacienteId) {
     <form class="painel" id="form-atendimento">
       ${htmlFormAtendimento({ pacientes: listaPacientes, atendimento: { paciente_id: pacienteId } })}
       <button type="submit">Salvar atendimento</button>
-      <button type="button" class="secundario" id="exemplo">Preencher exemplo</button>
+      <button type="button" class="secundario" id="exemplo">Sortear outro exemplo</button>
     </form>`;
 
   const form = document.getElementById('form-atendimento');
@@ -230,6 +230,8 @@ async function paginaNovoAtendimento(pacienteId) {
     medicamentos: await medicamentos.listar(),
     alergiasDoPaciente: async (id) => (await prontuarios.listarDoPaciente(id))[0]?.alergias,
   });
+  // Já abre preenchido com um exemplo; o socorrista só ajusta o que quiser.
+  preencherAtendimentoExemplo(form);
   document.getElementById('exemplo').onclick = () => preencherAtendimentoExemplo(form);
   form.onsubmit = async (e) => {
     e.preventDefault();
@@ -255,6 +257,8 @@ async function paginaNovoAtendimento(pacienteId) {
 function preencherAtendimentoExemplo(form) {
   const { medicamento, dose, unidade, ...campos } = atendimentoExemplo();
   preencherFormulario(form, campos);
+
+  form.querySelectorAll('.linha-medicamento-bloco').forEach((linha) => linha.remove());
 
   form.querySelector('[data-adicionar-medicamento]').click();
   const linha = form.querySelector('.linha-medicamento-bloco:last-child');

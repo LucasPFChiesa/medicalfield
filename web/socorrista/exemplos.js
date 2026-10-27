@@ -42,8 +42,21 @@ export function pacienteExemplo() {
   };
 }
 
+// Sorteia uma das ocorrências e varia um pouco os sinais vitais,
+// para cada atendimento de exemplo ficar diferente.
 export function atendimentoExemplo() {
-  return { ...sortear(OCORRENCIAS) };
+  const o = sortear(OCORRENCIAS);
+  const variar = (valor, margem) => valor + numeroEntre(-margem, margem);
+  return {
+    ...o,
+    pa_sistolica: variar(o.pa_sistolica, 8),
+    pa_diastolica: variar(o.pa_diastolica, 5),
+    fc: variar(o.fc, 6),
+    fr: variar(o.fr, 2),
+    spo2: Math.min(100, variar(o.spo2, 2)),
+    temperatura: (o.temperatura + numeroEntre(-3, 3) / 10).toFixed(1),
+    glicemia: numeroEntre(80, 140),
+  };
 }
 
 // Coloca cada valor no campo de mesmo nome e avisa o formulário da mudança
