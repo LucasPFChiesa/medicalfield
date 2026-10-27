@@ -465,8 +465,6 @@ async function mostrarInicio() {
     <div class="painel">
       <h3 style="margin-top:0">Acessos rápidos</h3>
       <div class="barra-acoes">
-        <a class="botao secundario" href="http://localhost:8080/socorrista/" target="_blank"
-           title="O app roda no notebook: ligue antes com iniciar-local.sh">Abrir app do socorrista (notebook)</a>
         <a class="botao secundario" href="/docs/" target="_blank">Documentação da API</a>
       </div>
     </div>`;
