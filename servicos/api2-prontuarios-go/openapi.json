@@ -1,13 +1,35 @@
 {
   "openapi": "3.0.3",
   "info": {
-    "title": "MedicalField - Sincronização (Go)",
+    "title": "MedicalField - API 2: Prontuários e sincronização (Go)",
     "version": "1.0.0",
-    "description": "Sincronização bidirecional do app do socorrista. O push recebe a fila de operações feitas offline, garante idempotência pelo op_id, resolve conflitos de versão e repassa cada gravação ao serviço dono da entidade. O pull devolve tudo que mudou desde um cursor. Todas as rotas exigem Authorization: Bearer <token>."
+    "description": "Prontuários (cadastro, consulta e edição com controle de versão) e sincronização bidirecional do app do socorrista. O push recebe a fila de operações feitas offline, garante idempotência pelo op_id, resolve conflitos de versão e grava o prontuário aqui mesmo e repassa pessoas e atendimentos à API 3. O pull devolve tudo que mudou desde um cursor. Todas as rotas exigem Authorization: Bearer <token>."
   },
   "servers": [{ "url": "/" }],
   "security": [{ "bearer": [] }],
   "paths": {
+    "/api/prontuario": {
+      "get": {
+        "tags": ["Prontuários"], "summary": "Obtém todos os prontuários de todas as pessoas",
+        "parameters": [{ "name": "busca", "in": "query", "description": "Filtro pelo nome do paciente", "schema": { "type": "string" } }],
+        "responses": { "200": { "description": "Lista", "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Prontuario" } } } } }, "401": { "$ref": "#/components/responses/NaoAutenticado" } }
+      },
+      "post": {
+        "tags": ["Prontuários"], "summary": "Cadastra um prontuário (um ativo por pessoa)",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ProntuarioEntrada" } } } },
+        "responses": { "201": { "description": "Criado" }, "400": { "description": "Dados inválidos ou paciente inexistente" }, "409": { "description": "Paciente já possui prontuário ou id já existe" } }
+      }
+    },
+    "/api/prontuario/{id}": {
+      "parameters": [{ "name": "id", "in": "path", "required": true, "description": "Id do prontuário ou id da pessoa", "schema": { "type": "string", "format": "uuid" } }],
+      "get": { "tags": ["Prontuários"], "summary": "Obtém o prontuário de uma pessoa", "responses": { "200": { "description": "Prontuário" }, "404": { "description": "Não encontrado" } } },
+      "put": {
+        "tags": ["Prontuários"], "summary": "Cria ou atualiza o prontuário (id do prontuário), com controle de versão",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ProntuarioEntrada" } } } },
+        "responses": { "200": { "description": "Atualizado" }, "201": { "description": "Criado" }, "409": { "description": "versao_base diferente da atual; o registro atual vem em 'atual'" } }
+      },
+      "delete": { "tags": ["Prontuários"], "summary": "Exclusão lógica (somente admin)", "responses": { "200": { "description": "Excluído" }, "403": { "description": "Perfil sem permissão" }, "404": { "description": "Não encontrado" } } }
+    },
     "/api/sync/push": {
       "post": {
         "tags": ["Sincronização"],
@@ -48,22 +70,32 @@
         "parameters": [{ "name": "id", "in": "path", "required": true, "description": "op_id da operação", "schema": { "type": "string", "format": "uuid" } }],
         "responses": { "200": { "description": "Operação com payload_cliente e payload_servidor" }, "404": { "description": "Operação não encontrada" } }
       }
-    },
-    "/api/log": {
-      "post": {
-        "tags": ["Auditoria"],
-        "summary": "Envia os logs locais gravados pelo app enquanto estava offline",
-        "requestBody": {
-          "required": true,
-          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PedidoLog" } } }
-        },
-        "responses": { "201": { "description": "Logs gravados" }, "400": { "description": "Pedido inválido" } }
-      }
     }
+
   },
   "components": {
     "securitySchemes": { "bearer": { "type": "http", "scheme": "bearer", "bearerFormat": "JWT" } },
+    "responses": { "NaoAutenticado": { "description": "Token ausente, inválido ou expirado" } },
     "schemas": {
+      "ProntuarioEntrada": {
+        "type": "object", "required": ["paciente_id"],
+        "properties": {
+          "id": { "type": "string", "format": "uuid", "description": "Opcional no POST" },
+          "paciente_id": { "type": "string", "format": "uuid" },
+          "tipo_sanguineo": { "type": "string", "enum": ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"] },
+          "alergias": { "type": "string" },
+          "comorbidades": { "type": "string" },
+          "uso_continuo": { "type": "string" },
+          "observacoes": { "type": "string" },
+          "versao_base": { "type": "integer", "description": "Versão lida pelo cliente (PUT)" },
+          "alterado_no_cliente_em": { "type": "string", "format": "date-time" }
+        }
+      },
+      "Prontuario": {
+        "allOf": [{ "$ref": "#/components/schemas/ProntuarioEntrada" }, { "type": "object", "properties": {
+          "versao": { "type": "integer" }, "paciente_nome": { "type": "string" },
+          "criado_em": { "type": "string", "format": "date-time" }, "excluido_em": { "type": "string", "format": "date-time", "nullable": true } } }]
+      },
       "Operacao": {
         "type": "object",
         "required": ["op_id", "entidade", "acao", "entidade_id"],
@@ -111,27 +143,6 @@
           "medicamentos": { "type": "array", "items": { "type": "object" } },
           "atendimentos": { "type": "array", "items": { "type": "object" } },
           "profissionais": { "type": "array", "items": { "type": "object" } }
-        }
-      },
-      "PedidoLog": {
-        "type": "object",
-        "properties": {
-          "dispositivo_id": { "type": "string" },
-          "logs": {
-            "type": "array",
-            "maxItems": 500,
-            "items": {
-              "type": "object",
-              "required": ["data_hora", "metodo", "rota"],
-              "properties": {
-                "data_hora": { "type": "string", "format": "date-time" },
-                "metodo": { "type": "string", "example": "LOCAL" },
-                "rota": { "type": "string", "example": "criar paciente" },
-                "status": { "type": "integer" },
-                "duracao_ms": { "type": "number" }
-              }
-            }
-          }
         }
       }
     }

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -66,7 +67,7 @@ func validarOperacao(op Operacao) string {
 	switch {
 	case !formatoUUID.MatchString(op.OpID):
 		return "op_id deve ser um UUID"
-	case donos[op.Entidade].caminho == "":
+	case !slices.Contains(entidadesSincronizadas, op.Entidade):
 		return "entidade deve ser paciente, prontuario ou atendimento"
 	case op.Acao != "criar" && op.Acao != "atualizar" && op.Acao != "excluir":
 		return "acao deve ser criar, atualizar ou excluir"
@@ -121,7 +122,7 @@ func processarOperacao(ctx context.Context, op Operacao, dispositivo string, inf
 		return registrar(ctx, op, dispositivo, info, "erro", "Registro não existe no servidor", nil)
 	}
 
-	resposta, err := encaminhar(ctx, op, versaoEnvio, info.token)
+	resposta, err := aplicarOperacao(ctx, op, versaoEnvio, info)
 	if err != nil {
 		resultado := registrar(ctx, op, dispositivo, info, "erro", err.Error(), nil)
 		resultado.Retentar = true

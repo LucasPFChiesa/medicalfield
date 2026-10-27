@@ -24,7 +24,7 @@ func variavel(nome, padrao string) string {
 func conectarBanco() *pgxpool.Pool {
 	dsn := "host=" + variavel("DB_HOST", "localhost") +
 		" dbname=" + variavel("DB_NOME", "medicalfield") +
-		" user=mf_sync password=" + os.Getenv("DB_SENHA_SYNC") +
+		" user=mf_api2 password=" + os.Getenv("DB_SENHA_API2") +
 		" pool_max_conns=5"
 	pool, err := pgxpool.New(context.Background(), dsn)
 	if err != nil {
@@ -33,10 +33,16 @@ func conectarBanco() *pgxpool.Pool {
 	return pool
 }
 
+// API 2 - Prontuários e sincronização (Go)
+//   GET/POST /api/prontuario e GET /api/prontuario/{id}   (prontuarios.go)
+//   POST /api/sync/push   recebe a fila de operações feitas offline no app (push.go)
+//   GET  /api/sync/pull   devolve o que mudou desde o último cursor (pull.go)
+//   GET  /api/sync/operacoes[/{id}]   rastro das sincronizações, usado pelo portal
+// Todas as rotas, menos a especificação OpenAPI, exigem Authorization: Bearer <token>.
 func rotas() http.Handler {
 	mux := http.NewServeMux()
-	mux.HandleFunc("GET /api/openapi/sync.json", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, variavel("OPENAPI_SYNC", "openapi.json"))
+	mux.HandleFunc("GET /api/openapi/api2.json", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, variavel("OPENAPI_API2", "openapi.json"))
 	})
 
 	protegidas := http.NewServeMux()
@@ -44,7 +50,11 @@ func rotas() http.Handler {
 	protegidas.HandleFunc("GET /api/sync/pull", pull)
 	protegidas.HandleFunc("GET /api/sync/operacoes", listarOperacoes)
 	protegidas.HandleFunc("GET /api/sync/operacoes/{id}", detalharOperacao)
-	protegidas.HandleFunc("POST /api/log", receberLogs)
+	protegidas.HandleFunc("GET /api/prontuario", listarProntuarios)
+	protegidas.HandleFunc("GET /api/prontuario/{id}", obterProntuario)
+	protegidas.HandleFunc("POST /api/prontuario", criarProntuario)
+	protegidas.HandleFunc("PUT /api/prontuario/{id}", atualizarProntuario)
+	protegidas.HandleFunc("DELETE /api/prontuario/{id}", excluirProntuario)
 	mux.Handle("/api/", exigirToken(protegidas))
 
 	return registrarAcesso(mux)
@@ -67,13 +77,13 @@ func main() {
 	banco = conectarBanco()
 	defer banco.Close()
 
-	endereco := "127.0.0.1:" + variavel("PORTA_SYNC", "8002")
+	endereco := "127.0.0.1:" + variavel("PORTA_API2", "8002")
 	servidor := &http.Server{
 		Addr:         endereco,
 		Handler:      rotas(),
 		ReadTimeout:  15 * time.Second,
 		WriteTimeout: 60 * time.Second,
 	}
-	log.Printf("Serviço de sincronização ouvindo em %s", endereco)
+	log.Printf("API 2 (prontuários e sincronização) ouvindo em %s", endereco)
 	log.Fatal(servidor.ListenAndServe())
 }

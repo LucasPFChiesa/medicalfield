@@ -10,13 +10,30 @@ import (
 	"time"
 )
 
-// O serviço de sincronização não grava nas tabelas dos outros serviços:
-// ele chama a API do serviço dono de cada entidade, repassando o token do
-// profissional (assim o log do serviço dono também mostra quem fez a operação).
+// Comunicação entre as APIs na sincronização.
+// A API 2 só grava nas próprias tabelas. O prontuário é dela, então é gravado
+// direto (salvarProntuario). Pessoa e atendimento são da API 3 (Node): a API 2
+// chama a API 3 por HTTP interno, repassando o token do profissional, assim a
+// API 3 confere a permissão e o log dela mostra quem fez a operação.
 var donos = map[string]struct{ variavelURL, padraoURL, caminho string }{
-	"paciente":    {"URL_CADASTROS", "http://127.0.0.1:3001", "/api/pessoa/"},
-	"prontuario":  {"URL_CADASTROS", "http://127.0.0.1:3001", "/api/prontuario/"},
-	"atendimento": {"URL_ATENDIMENTOS", "http://127.0.0.1:8001", "/api/atendimento/"},
+	"paciente":    {"URL_API3", "http://127.0.0.1:3001", "/api/pessoa/"},
+	"atendimento": {"URL_API3", "http://127.0.0.1:3001", "/api/atendimento/"},
+}
+
+var entidadesSincronizadas = []string{"paciente", "prontuario", "atendimento"}
+
+func aplicarOperacao(ctx context.Context, op Operacao, versaoBase *int, info *requisicao) (respostaDono, error) {
+	if op.Entidade != "prontuario" {
+		return encaminhar(ctx, op, versaoBase, info.token)
+	}
+	if op.Acao == "excluir" {
+		return respostaDono{http.StatusForbidden, map[string]any{"erro": "O app não exclui prontuários"}}, nil
+	}
+	dados := map[string]any{}
+	for chave, valor := range op.Dados {
+		dados[chave] = valor
+	}
+	return salvarProntuario(ctx, op.EntidadeID, dados, versaoBase, false, info.profissionalID)
 }
 
 var clienteHTTP = &http.Client{Timeout: 20 * time.Second}

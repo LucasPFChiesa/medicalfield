@@ -67,3 +67,14 @@ func TestValidarOperacao(t *testing.T) {
 		t.Error("op_id inválido deveria ser recusado")
 	}
 }
+
+func TestValidarProntuario(t *testing.T) {
+	valido := map[string]any{"paciente_id": "0d5f6b9a-8c4e-4b5d-a1e2-3c4d5e6f7a8b", "tipo_sanguineo": "O+"}
+	if erros := validarProntuario(valido); len(erros) != 0 {
+		t.Errorf("prontuário válido recusado: %v", erros)
+	}
+	semPaciente := map[string]any{"tipo_sanguineo": "X"}
+	if erros := validarProntuario(semPaciente); len(erros) != 2 {
+		t.Errorf("esperava 2 erros (paciente e tipo sanguíneo), veio %v", erros)
+	}
+}

@@ -1,4 +1,4 @@
-module medicalfield/sync
+module medicalfield/api2
 
 go 1.25.0
 
