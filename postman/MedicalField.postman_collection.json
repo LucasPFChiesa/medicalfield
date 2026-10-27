@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "MedicalField",
-    "description": "Rotas dos três microsserviços do MedicalField. Execute primeiro 'Login (admin)'. Usuário admin, senha admin (variável senha).",
+    "description": "Rotas das três APIs do MedicalField (API 1 Python, API 2 Go, API 3 Node), na ordem em que dependem umas das outras. Rode primeiro 'POST /auth/login (admin)': o token fica guardado e as outras requisições o enviam como Bearer. Usuário admin, senha admin.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -56,24 +56,24 @@
       "value": ""
     },
     {
-      "key": "email_destino",
-      "value": "lpfctest@gmail.com"
-    },
-    {
       "key": "offline_pessoa",
       "value": ""
     },
     {
       "key": "offline_atendimento",
       "value": ""
+    },
+    {
+      "key": "email_destino",
+      "value": "lpfctest@gmail.com"
     }
   ],
   "item": [
     {
-      "name": "1. Autenticação (Node)",
+      "name": "API 1 · Autenticação (Python)",
       "item": [
         {
-          "name": "Login (admin)",
+          "name": "POST /auth/login (admin)",
           "request": {
             "method": "POST",
             "header": [
@@ -114,7 +114,7 @@
           ]
         },
         {
-          "name": "Login (socorrista)",
+          "name": "POST /auth/login (socorrista)",
           "request": {
             "method": "POST",
             "header": [
@@ -195,7 +195,7 @@
           ]
         },
         {
-          "name": "Dados do token",
+          "name": "GET /auth/eu",
           "request": {
             "method": "GET",
             "header": [],
@@ -251,24 +251,51 @@
               }
             }
           ]
+        },
+        {
+          "name": "GET /profissional (admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/profissional",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "profissional"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
         }
       ]
     },
     {
-      "name": "2. Pessoas (Node)",
+      "name": "API 3 · Pessoas e medicamentos (Node)",
       "item": [
         {
-          "name": "Listar pessoas",
+          "name": "GET /medicamento",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/pessoa",
+              "raw": "{{base_url}}/medicamento",
               "host": [
                 "{{base_url}}"
               ],
               "path": [
-                "pessoa"
+                "medicamento"
               ]
             }
           },
@@ -278,47 +305,15 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('status 200', () => pm.response.to.have.status(200));"
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "pm.collectionVariables.set('medicamento_id', pm.response.json()[0].id);"
                 ]
               }
             }
           ]
         },
         {
-          "name": "Buscar pessoa",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/pessoa?busca=Ana",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "pessoa"
-              ],
-              "query": [
-                {
-                  "key": "busca",
-                  "value": "Ana"
-                }
-              ]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('status 200', () => pm.response.to.have.status(200));"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Cadastrar pessoa",
+          "name": "POST /pessoa",
           "request": {
             "method": "POST",
             "header": [
@@ -355,18 +350,23 @@
           ]
         },
         {
-          "name": "Obter pessoa",
+          "name": "GET /pessoa?busca=",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/pessoa/{{pessoa_id}}",
+              "raw": "{{base_url}}/pessoa?busca=Postman",
               "host": [
                 "{{base_url}}"
               ],
               "path": [
-                "pessoa",
-                "{{pessoa_id}}"
+                "pessoa"
+              ],
+              "query": [
+                {
+                  "key": "busca",
+                  "value": "Postman"
+                }
               ]
             }
           },
@@ -383,7 +383,7 @@
           ]
         },
         {
-          "name": "Atualizar pessoa (versão 1)",
+          "name": "PUT /pessoa/{id} (versão 1)",
           "request": {
             "method": "PUT",
             "header": [
@@ -420,7 +420,7 @@
           ]
         },
         {
-          "name": "Atualizar com versão antiga (409)",
+          "name": "PUT com versão antiga (409)",
           "request": {
             "method": "PUT",
             "header": [
@@ -457,7 +457,7 @@
           ]
         },
         {
-          "name": "Dados inválidos (400)",
+          "name": "POST /pessoa inválida (400)",
           "request": {
             "method": "POST",
             "header": [
@@ -491,25 +491,29 @@
               }
             }
           ]
-        }
-      ]
-    },
-    {
-      "name": "3. Prontuários (Node)",
-      "item": [
+        },
         {
-          "name": "Listar prontuários",
+          "name": "POST /medicamento (admin)",
           "request": {
-            "method": "GET",
-            "header": [],
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "url": {
-              "raw": "{{base_url}}/prontuario",
+              "raw": "{{base_url}}/medicamento",
               "host": [
                 "{{base_url}}"
               ],
               "path": [
-                "prontuario"
+                "medicamento"
               ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Cetoprofeno\",\n  \"principio_ativo\": \"Cetoprofeno\",\n  \"apresentacao\": \"Frasco-ampola\",\n  \"concentracao\": \"100 mg\",\n  \"via_padrao\": \"IV\"\n}"
             }
           },
           "event": [
@@ -518,14 +522,19 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('status 200', () => pm.response.to.have.status(200));"
+                  "pm.test('status 201', () => pm.response.to.have.status(201));"
                 ]
               }
             }
           ]
-        },
+        }
+      ]
+    },
+    {
+      "name": "API 2 · Prontuários (Go)",
+      "item": [
         {
-          "name": "Cadastrar prontuário",
+          "name": "POST /prontuario",
           "request": {
             "method": "POST",
             "header": [
@@ -562,7 +571,34 @@
           ]
         },
         {
-          "name": "Obter prontuário de uma pessoa",
+          "name": "GET /prontuario",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/prontuario",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "prontuario"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /prontuario/{id} (id da pessoa)",
           "request": {
             "method": "GET",
             "header": [],
@@ -590,7 +626,7 @@
           ]
         },
         {
-          "name": "Atualizar prontuário",
+          "name": "PUT /prontuario/{id}",
           "request": {
             "method": "PUT",
             "header": [
@@ -629,208 +665,10 @@
       ]
     },
     {
-      "name": "4. Medicamentos (Node)",
+      "name": "API 3 · Atendimentos (Node)",
       "item": [
         {
-          "name": "Listar medicamentos",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/medicamento",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "medicamento"
-              ]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('status 200', () => pm.response.to.have.status(200));",
-                  "pm.collectionVariables.set('medicamento_id', pm.response.json()[0].id);"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Cadastrar medicamento (admin)",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/medicamento",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "medicamento"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nome\": \"Cetoprofeno\",\n  \"principio_ativo\": \"Cetoprofeno\",\n  \"apresentacao\": \"Frasco-ampola\",\n  \"concentracao\": \"100 mg\",\n  \"via_padrao\": \"IV\"\n}"
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('status 201', () => pm.response.to.have.status(201));"
-                ]
-              }
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "name": "5. Profissionais e auditoria (Node, admin)",
-      "item": [
-        {
-          "name": "Listar profissionais",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/profissional",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "profissional"
-              ]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('status 200', () => pm.response.to.have.status(200));"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Auditoria de acessos",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/auditoria?limite=50",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "auditoria"
-              ],
-              "query": [
-                {
-                  "key": "limite",
-                  "value": "50"
-                }
-              ]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('status 200', () => pm.response.to.have.status(200));"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Auditoria só do serviço Go",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/auditoria?servico=sync&limite=20",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "auditoria"
-              ],
-              "query": [
-                {
-                  "key": "servico",
-                  "value": "sync"
-                },
-                {
-                  "key": "limite",
-                  "value": "20"
-                }
-              ]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('status 200', () => pm.response.to.have.status(200));"
-                ]
-              }
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "name": "6. Atendimentos, PDF e e-mail (Python)",
-      "item": [
-        {
-          "name": "Listar atendimentos",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/atendimento",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "atendimento"
-              ]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('status 200', () => pm.response.to.have.status(200));"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Cadastrar atendimento",
+          "name": "POST /atendimento",
           "request": {
             "method": "POST",
             "header": [
@@ -867,46 +705,17 @@
           ]
         },
         {
-          "name": "Atendimentos de uma pessoa",
+          "name": "GET /atendimento/{id}",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/atendimento/{{pessoa_id}}",
+              "raw": "{{base_url}}/atendimento/{{atendimento_id}}",
               "host": [
                 "{{base_url}}"
               ],
               "path": [
                 "atendimento",
-                "{{pessoa_id}}"
-              ]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('status 200', () => pm.response.to.have.status(200));"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Detalhe do atendimento",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/atendimento/detalhe/{{atendimento_id}}",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "atendimento",
-                "detalhe",
                 "{{atendimento_id}}"
               ]
             }
@@ -924,7 +733,40 @@
           ]
         },
         {
-          "name": "Atualizar atendimento",
+          "name": "GET /atendimento?paciente_id=",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/atendimento?paciente_id={{pessoa_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "atendimento"
+              ],
+              "query": [
+                {
+                  "key": "paciente_id",
+                  "value": "{{pessoa_id}}"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PUT /atendimento/{id}",
           "request": {
             "method": "PUT",
             "header": [
@@ -995,21 +837,31 @@
               }
             }
           ]
-        },
+        }
+      ]
+    },
+    {
+      "name": "API 1 · Documentos e logs (Python)",
+      "item": [
         {
-          "name": "Ficha em PDF",
+          "name": "GET /documento/pdf",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/atendimento/{{atendimento_id}}/pdf",
+              "raw": "{{base_url}}/documento/pdf?atendimento_id={{atendimento_id}}",
               "host": [
                 "{{base_url}}"
               ],
               "path": [
-                "atendimento",
-                "{{atendimento_id}}",
+                "documento",
                 "pdf"
+              ],
+              "query": [
+                {
+                  "key": "atendimento_id",
+                  "value": "{{atendimento_id}}"
+                }
               ]
             }
           },
@@ -1027,7 +879,7 @@
           ]
         },
         {
-          "name": "Enviar ficha por e-mail",
+          "name": "POST /email/enviar",
           "request": {
             "method": "POST",
             "header": [
@@ -1037,19 +889,87 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/atendimento/{{atendimento_id}}/email",
+              "raw": "{{base_url}}/email/enviar",
               "host": [
                 "{{base_url}}"
               ],
               "path": [
-                "atendimento",
-                "{{atendimento_id}}",
-                "email"
+                "email",
+                "enviar"
               ]
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"destinatario\": \"{{email_destino}}\"\n}"
+              "raw": "{\n  \"atendimento_id\": \"{{atendimento_id}}\",\n  \"destinatario\": \"{{email_destino}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /log",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/log",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "log"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dispositivo_id\": \"postman\",\n  \"logs\": [\n    {\n      \"data_hora\": \"2026-10-13T15:00:00Z\",\n      \"metodo\": \"LOCAL\",\n      \"rota\": \"criar paciente (offline)\",\n      \"status\": 0,\n      \"duracao_ms\": 2.5\n    }\n  ]\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 201', () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /auditoria (admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/auditoria?limite=50",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auditoria"
+              ],
+              "query": [
+                {
+                  "key": "limite",
+                  "value": "50"
+                }
+              ]
             }
           },
           "event": [
@@ -1067,10 +987,10 @@
       ]
     },
     {
-      "name": "7. Sincronização e logs (Go)",
+      "name": "API 2 · Sincronização (Go)",
       "item": [
         {
-          "name": "Pull completo",
+          "name": "GET /sync/pull",
           "request": {
             "method": "GET",
             "header": [],
@@ -1104,7 +1024,7 @@
           ]
         },
         {
-          "name": "Push de ocorrência offline",
+          "name": "POST /sync/push (ocorrência offline)",
           "request": {
             "method": "POST",
             "header": [
@@ -1127,7 +1047,7 @@
               "mode": "raw",
               "raw": "{\n  \"dispositivo_id\": \"postman\",\n  \"operacoes\": [\n    {\n      \"op_id\": \"{{op_pessoa}}\",\n      \"entidade\": \"paciente\",\n      \"acao\": \"criar\",\n      \"entidade_id\": \"{{offline_pessoa}}\",\n      \"versao_base\": 0,\n      \"dados\": {\n        \"id\": \"{{offline_pessoa}}\",\n        \"nome\": \"Vítima via Postman\",\n        \"sexo\": \"M\",\n        \"alterado_no_cliente_em\": \"2026-10-13T15:00:00Z\"\n      }\n    },\n    {\n      \"op_id\": \"{{op_atendimento}}\",\n      \"entidade\": \"atendimento\",\n      \"acao\": \"criar\",\n      \"entidade_id\": \"{{offline_atendimento}}\",\n      \"versao_base\": 0,\n      \"dados\": {\n        \"id\": \"{{offline_atendimento}}\",\n        \"paciente_id\": \"{{offline_pessoa}}\",\n        \"data_hora\": \"2026-10-13T15:00:00Z\",\n        \"tipo_ocorrencia\": \"queda\",\n        \"descricao\": \"Registrado sem conexão (Postman).\",\n        \"manchester\": \"verde\"\n      }\n    }\n  ]\n}"
             },
-            "description": "O script de pré-requisição gera novos ids. Rode 'Reenviar o mesmo push' em seguida para ver a idempotência."
+            "description": "O script de pré-requisição gera ids novos. Rode 'Reenviar o mesmo push' em seguida para ver a idempotência."
           },
           "event": [
             {
@@ -1190,7 +1110,7 @@
           ]
         },
         {
-          "name": "Rastro das operações",
+          "name": "GET /sync/operacoes",
           "request": {
             "method": "GET",
             "header": [],
@@ -1218,42 +1138,6 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('status 200', () => pm.response.to.have.status(200));"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Enviar logs offline",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/log",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "log"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"dispositivo_id\": \"postman\",\n  \"logs\": [\n    {\n      \"data_hora\": \"2026-10-13T15:00:00Z\",\n      \"metodo\": \"LOCAL\",\n      \"rota\": \"criar paciente (offline)\",\n      \"status\": 0,\n      \"duracao_ms\": 2.5\n    }\n  ]\n}"
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('status 201', () => pm.response.to.have.status(201));"
                 ]
               }
             }
