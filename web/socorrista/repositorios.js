@@ -105,7 +105,8 @@ export const servidor = {
     chamarServidor('/sync/push', { metodo: 'POST', corpo: { dispositivo_id, operacoes } }),
   receberAlteracoes: (desde) => chamarServidor(`/sync/pull?desde=${desde}`),
   enviarLogs: (dispositivo_id, logs) => chamarServidor('/log', { metodo: 'POST', corpo: { dispositivo_id, logs } }),
-  baixarFicha: (atendimentoId) => chamarServidor(`/atendimento/${atendimentoId}/pdf`, { comoArquivo: true }),
+  // PDF e e-mail são da API 1
+  baixarFicha: (atendimentoId) => chamarServidor(`/documento/pdf?atendimento_id=${atendimentoId}`, { comoArquivo: true }),
   enviarFicha: (atendimentoId, destinatario) =>
-    chamarServidor(`/atendimento/${atendimentoId}/email`, { metodo: 'POST', corpo: { destinatario } }),
+    chamarServidor('/email/enviar', { metodo: 'POST', corpo: { atendimento_id: atendimentoId, destinatario } }),
 };

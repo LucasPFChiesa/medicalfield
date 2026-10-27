@@ -290,7 +290,7 @@ function htmlDetalheAtendimento(a) {
 }
 
 async function verAtendimento(id) {
-  const a = await api(`/atendimento/detalhe/${id}`);
+  const a = await api(`/atendimento/${id}`);
   const area = document.getElementById('area-detalhe');
   area.innerHTML = `
     <div class="painel">
@@ -310,14 +310,14 @@ async function verAtendimento(id) {
   document.getElementById('form-email').onsubmit = (e) => {
     e.preventDefault();
     const destinatario = e.target.destinatario.value;
-    executar(() => api(`/atendimento/${id}/email`, { metodo: 'POST', corpo: { destinatario } }),
+    executar(() => api('/email/enviar', { metodo: 'POST', corpo: { atendimento_id: id, destinatario } }),
       `Ficha enviada por e-mail para ${destinatario}.`);
   };
 }
 
 async function editarAtendimento(id) {
   const [a, pacientes, medicamentos] = await Promise.all([
-    api(`/atendimento/detalhe/${id}`), api('/pessoa'), api('/medicamento'),
+    api(`/atendimento/${id}`), api('/pessoa'), api('/medicamento'),
   ]);
   const area = document.getElementById('area-detalhe');
   area.innerHTML = `
@@ -346,7 +346,7 @@ async function editarAtendimento(id) {
 
 async function baixarPdf(id) {
   await executar(async () => {
-    const { blob, nome } = await api(`/atendimento/${id}/pdf`, { comoArquivo: true });
+    const { blob, nome } = await api(`/documento/pdf?atendimento_id=${id}`, { comoArquivo: true });
     baixarBlob(blob, nome);
   }, 'PDF gerado.');
 }
@@ -408,7 +408,12 @@ async function verOperacao(opId) {
 async function mostrarAuditoria() {
   const servico = new URLSearchParams(location.hash.split('?')[1]).get('servico') ?? '';
   const logs = await api(`/auditoria?limite=300${servico ? `&servico=${servico}` : ''}`);
-  const servicos = { cadastros: 'Cadastros (Node)', atendimentos: 'Atendimentos (Python)', sync: 'Sincronização (Go)', 'app-socorrista': 'App do socorrista (offline)' };
+  const servicos = {
+    api1: 'API 1 - autenticação, logs e documentos (Python)',
+    api2: 'API 2 - prontuários e sincronização (Go)',
+    api3: 'API 3 - pessoas, medicamentos e atendimentos (Node)',
+    'app-socorrista': 'App do socorrista (offline)',
+  };
   pagina.innerHTML = `
     ${cabecalho('Auditoria', 'Últimos acessos registrados pelos três serviços e pelo app do socorrista.',
       '<button class="secundario" id="atualizar">Atualizar</button>')}
